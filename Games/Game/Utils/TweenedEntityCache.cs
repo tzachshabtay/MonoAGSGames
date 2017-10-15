@@ -12,7 +12,7 @@ namespace Game.Utils
         public delegate void OnTweenCompleteHandler(T entity);
 
         private Queue<T> _avail = new Queue<T>();
-        private LinkedList<KeyValuePair<T, Tween>> _inUse = new LinkedList<KeyValuePair<T, Tween>>();
+        private LinkedList<(T entity, Tween tween)> _inUse = new LinkedList<(T, Tween)>();
 
         public TweenedEntityCache(IEvent repExecEvent)
         {
@@ -42,7 +42,7 @@ namespace Game.Utils
                     _avail.Enqueue(e); // put it back
                     return null;
                 }
-                _inUse.AddLast(new KeyValuePair<T, Tween>(e, tween));
+                _inUse.AddLast((e, tween));
                 return e;
             }
         }
@@ -55,8 +55,7 @@ namespace Game.Utils
                 while (node != null)
                 {
                     var next = node.Next;
-                    var e = node.Value.Key;
-                    var tween = node.Value.Value;
+                    var (e, tween) = node.Value;
                     if (tween.Task.IsCompleted)
                     {
                         _inUse.Remove(node);
