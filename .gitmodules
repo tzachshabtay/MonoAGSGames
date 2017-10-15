@@ -1,0 +1,4 @@
+[submodule "MonoAGS"]
+	path = MonoAGS
+	url = https://github.com/tzachshabtay/MonoAGS.git
+	branch = master
