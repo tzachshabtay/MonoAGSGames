@@ -57,7 +57,7 @@ namespace Game.Utils
                     var next = node.Next;
                     var e = node.Value.Key;
                     var tween = node.Value.Value;
-                    if (tween.ElapsedTicks >= tween.DurationInTicks)
+                    if (tween.Task.IsCompleted)
                     {
                         _inUse.Remove(node);
                         OnTweenComplete(e);

@@ -113,7 +113,7 @@ namespace Game
             if (_game.State.Room != _room)
                 return;
             
-            if (cameraTween == null || cameraTween.ElapsedTicks >= cameraTween.DurationInTicks)
+            if (cameraTween?.Task?.IsCompleted ?? true)
             {
                 float tweenTime = (float)MathUtils.Random().NextDouble() * 8f + 2f;
                 if (cameraTween == null)
