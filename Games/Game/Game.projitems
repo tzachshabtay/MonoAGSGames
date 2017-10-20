@@ -11,6 +11,5 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rooms\Roadway.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\TweenedEntityCache.cs" />
   </ItemGroup>
 </Project>

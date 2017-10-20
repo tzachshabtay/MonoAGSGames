@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Timers;
 using AGS.API;
 using AGS.Engine;
-using Game.Utils;
 
 namespace Game
 {
@@ -11,7 +9,7 @@ namespace Game
     {
         private IRoom _room;
         private IGame _game;
-        private TweenedEntityCache<IObject> _townObj;
+        private ObjectPool<IObject> _townObj;
         private List<IImage> _townImages;
 
         public const int MaxTownObjects = 20;
@@ -35,8 +33,14 @@ namespace Game
 
         private async Task CreateTownObjects()
         {
-            _townObj = new TweenedEntityCache<IObject>(_game.Events.OnRepeatedlyExecute);
-            _townObj.OnTweenComplete += (IObject o) => { o.Visible = false; };
+            int index = 0;
+            _townObj = new ObjectPool<IObject>(_ =>
+            {
+                IObject o = _game.Factory.Object.GetObject("townobj" + index++.ToString());
+                o.Visible = false;
+                _room.Objects.Add(o);
+                return o;
+            }, MaxTownObjects, o => { o.Visible = false; });
 
             _townImages = new List<IImage>();
             for (int i = 0; ; ++i)
@@ -45,15 +49,6 @@ namespace Game
                 if (image == null || image is EmptyImage)
                     break;
                 _townImages.Add(image);
-            }
-
-            
-            for (int i = 0; i < MaxTownObjects; i++)
-            {
-                IObject o = _game.Factory.Object.GetObject("townobj" + i.ToString());
-                o.Visible = false;
-                _room.Objects.Add(o);
-                _townObj.Add(o);
             }
         }
 
@@ -74,38 +69,41 @@ namespace Game
         }
 
         private Tween cameraTween;
-        private Timer townTimer;
 
         private void onBeforeFadeIn()
         {
             if (_townImages.Count == 0)
                 return;
-            townTimer = new Timer();
-            townTimer.Elapsed += townTimer_Elapsed;
-            townTimer.AutoReset = true;
-            townTimer.Interval = MathUtils.Random().Next(200, 1500);
-            townTimer.Start();
+            loopBuildingAnimation();
         }
 
-        private void townTimer_Elapsed(object sender, ElapsedEventArgs e)
+        private async void loopBuildingAnimation()
         {
-            townTimer.Interval = MathUtils.Random().Next(200, 1500);
             const int minY = 340;
             const int maxY = 440;
             const float minTime = 2f;
             const float defTime = 6f;
             const float farScaleMod = 0.4f;
-            _townObj.BeginUsing((IObject o) => {
-                o.X = -500;
-                o.Y = MathUtils.Random().Next(minY, maxY);
-                o.Image = _townImages[MathUtils.Random().Next(_townImages.Count)];
-                float distanceFactor = (float)(o.Y - minY) / (float)(maxY - minY);
-                float scale = 1f - farScaleMod * distanceFactor;
-                o.ScaleBy(scale, scale);
-                o.Visible = true;
-                float tweenTime = distanceFactor * defTime + minTime;
-                return o.TweenX(1500, tweenTime, Ease.Linear);
-            });
+
+            var o = _townObj.Acquire();
+            o.X = -500;
+            o.Y = MathUtils.Random().Next(minY, maxY);
+            o.Image = _townImages[MathUtils.Random().Next(_townImages.Count)];
+            float distanceFactor = (float)(o.Y - minY) / (float)(maxY - minY);
+            float scale = 1f - farScaleMod * distanceFactor;
+            o.ScaleBy(scale, scale);
+            o.Visible = true;
+            float tweenTime = distanceFactor * defTime + minTime;
+            fireBuildingTween(o, tweenTime);
+
+            await Task.Delay(MathUtils.Random().Next(200, 1500));
+            loopBuildingAnimation();
+        }
+
+        private async void fireBuildingTween(IObject o, float tweenTime)
+        {
+            await o.TweenX(1500, tweenTime, Ease.Linear).Task;
+            _townObj.Release(o);
         }
 
         private void onRepeatedlyExecute()
@@ -113,7 +111,7 @@ namespace Game
             if (_game.State.Room != _room)
                 return;
             
-            if (cameraTween == null || cameraTween.ElapsedTicks >= cameraTween.DurationInTicks)
+            if (cameraTween?.Task?.IsCompleted ?? true)
             {
                 float tweenTime = (float)MathUtils.Random().NextDouble() * 8f + 2f;
                 if (cameraTween == null)
