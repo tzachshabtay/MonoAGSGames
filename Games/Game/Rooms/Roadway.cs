@@ -11,6 +11,7 @@ namespace Game
         private IGame _game;
         private ObjectPool<IObject> _townObj;
         private List<IImage> _townImages;
+        private IObject _roadBar;
 
         public const int MaxTownObjects = 20;
 
@@ -58,6 +59,13 @@ namespace Game
             _room.Background = await AddObject("Roadway BG", "bg.png", 0, 0);
             _room.Objects.Add(await AddObject("Road", "roadpave.png", 640, 100));
 
+            var bar = await AddObject("RoadBar", "roadbar2.png", -1280, 356);
+            bar.Anchor = new PointF(0f, 0f);
+            bar.ResetBaseSize(1280 * 2, bar.Height);
+            bar.Image.Texture.Config = new AGSTextureConfig(wrapX: TextureWrap.MirroredRepeat, wrapY: TextureWrap.Clamp);
+            _room.Objects.Add(bar);
+            _roadBar = bar;
+
             await CreateTownObjects();
 
             _room.RoomLimitsProvider = AGSRoomLimits.FromBackground;
@@ -75,13 +83,14 @@ namespace Game
             if (_townImages.Count == 0)
                 return;
             loopBuildingAnimation();
+            loopRoadBar(_roadBar);
         }
 
         private async void loopBuildingAnimation()
         {
-            const int minY = 340;
+            const int minY = 360;
             const int maxY = 440;
-            const float minTime = 2f;
+            const float minTime = 3f;
             const float defTime = 6f;
             const float farScaleMod = 0.4f;
 
@@ -104,6 +113,14 @@ namespace Game
         {
             await o.TweenX(1500, tweenTime, Ease.Linear).Task;
             _townObj.Release(o);
+        }
+
+        // Not sure how to rewind it better way
+        private async void loopRoadBar(IObject bar)
+        {
+            await bar.TweenX(-1280 % (bar.Image.Width * 2), 1f).Task;
+            bar.X = -1280;
+            loopRoadBar(bar);
         }
 
         private void onRepeatedlyExecute()
