@@ -9,6 +9,7 @@
     <Import_RootNamespace>Game</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\TweenExt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rooms\Roadway.cs" />
   </ItemGroup>

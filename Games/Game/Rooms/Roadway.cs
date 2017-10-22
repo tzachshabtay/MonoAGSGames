@@ -83,7 +83,7 @@ namespace Game
             if (_townImages.Count == 0)
                 return;
             loopBuildingAnimation();
-            loopRoadBar(_roadBar);
+            _roadBar.TweenX(-1280 % (_roadBar.Image.Width * 2), 1f).RepeatForever();
         }
 
         private async void loopBuildingAnimation()
@@ -113,14 +113,6 @@ namespace Game
         {
             await o.TweenX(1500, tweenTime, Ease.Linear).Task;
             _townObj.Release(o);
-        }
-
-        // Not sure how to rewind it better way
-        private async void loopRoadBar(IObject bar)
-        {
-            await bar.TweenX(-1280 % (bar.Image.Width * 2), 1f).Task;
-            bar.X = -1280;
-            loopRoadBar(bar);
         }
 
         private void onRepeatedlyExecute()
