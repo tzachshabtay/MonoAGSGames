@@ -60,8 +60,8 @@ namespace Game
             _room.Objects.Add(await AddObject("Road", "roadpave.png", 640, 100));
 
             var bar = await AddObject("RoadBar", "roadbar2.png", -1280, 356);
-            bar.Anchor = new PointF(0f, 0f);
-            bar.ResetBaseSize(1280 * 2, bar.Height);
+            bar.Pivot = new PointF(0f, 0f);
+            bar.BaseSize = new SizeF(1280 * 2, bar.Height);
             bar.Image.Texture.Config = new AGSTextureConfig(wrapX: TextureWrap.MirroredRepeat, wrapY: TextureWrap.Clamp);
             _room.Objects.Add(bar);
             _roadBar = bar;
@@ -100,7 +100,7 @@ namespace Game
             o.Image = _townImages[MathUtils.Random().Next(_townImages.Count)];
             float distanceFactor = (float)(o.Y - minY) / (float)(maxY - minY);
             float scale = 1f - farScaleMod * distanceFactor;
-            o.ScaleBy(scale, scale);
+            o.Scale = new PointF(scale, scale);
             o.Visible = true;
             float tweenTime = distanceFactor * defTime + minTime;
             fireBuildingTween(o, tweenTime);
