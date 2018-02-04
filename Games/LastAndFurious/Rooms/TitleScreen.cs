@@ -21,8 +21,7 @@ namespace LastAndFurious
         private IRoom _room;
         private IGame _game;
         private const string _roomID = "TitleScreen";
-        private const string _roomAssetFolder = "../../Assets/Rooms/TitleScreen/";
-        private const string _baseAssetFolder = "../../Assets/";
+        private const string _roomAssetFolder = LF.RoomAssetFolder + "TitleScreen/";
         private IAudioClip _music;
 
         public IRoom Room { get => _room; }
@@ -48,10 +47,14 @@ namespace LastAndFurious
             _room.Background = await addObject("TitleScreen.BG", "gradiented-title.png", 0, -80);
 
             // TODO: label with the game version number in the corner of the title screen
+            var label = factory.UI.GetLabel("VersionLabel", LF.GAME_VERSION, 0, 0, 0, 0);
+            label.TextConfig.Font = AGSGameSettings.DefaultTextFont;
+            label.TextConfig.AutoFit = AutoFit.LabelShouldFitText;
+            _room.Objects.Add(label);
 
             _room.RoomLimitsProvider = AGSRoomLimits.FromBackground;
 
-            _music = await factory.Sound.LoadAudioClipAsync(_baseAssetFolder + "Music/Car-Theft-101.ogg");
+            _music = await factory.Sound.LoadAudioClipAsync(LF.MusicAssetFolder + "Car-Theft-101.ogg");
 
             _room.Events.OnBeforeFadeIn.Subscribe(onLoad);
             _room.Events.OnAfterFadeIn.Subscribe(onAfterFadeIn);
@@ -63,6 +66,8 @@ namespace LastAndFurious
         private void onLoad()
         {
             // TODO: stop all sounds
+
+            GameMenu.ShowMenu(_game, MenuClass.eMenuStart);
         }
 
         private void onAfterFadeIn()
