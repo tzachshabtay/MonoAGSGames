@@ -93,7 +93,7 @@ namespace LastAndFurious
                         _selector.Visible = true;
                     _selector.Y = sel * -OptionSpacing - (Font.Baseline / 2 + _selector.Height / 2);
                 }
-                else if (_selection > 0)
+                else if (_selection >= 0)
                 {
                     _selector.Visible = false;
                 }

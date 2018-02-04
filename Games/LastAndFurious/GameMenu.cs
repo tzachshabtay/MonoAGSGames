@@ -205,7 +205,7 @@ namespace LastAndFurious
             switch (key)
             {
                 case Key.Escape: CancelMenu(); break;
-                case Key.Up: _menu.Selection--; break;
+                case Key.Up: if (_menu.Selection > 0) _menu.Selection--; break;
                 case Key.Down: _menu.Selection++; break;
                 case Key.Left: _menu.ScrollLeft(); break;
                 case Key.Right: _menu.ScrollRight(); break;
