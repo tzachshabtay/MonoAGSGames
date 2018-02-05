@@ -1,4 +1,5 @@
-﻿using AGS.API;
+﻿using System.Collections.Generic;
+using AGS.API;
 using AGS.Engine;
 
 namespace LastAndFurious
@@ -25,6 +26,19 @@ namespace LastAndFurious
         public static class StartMenu
         {
             public static IImage Selector;
+        }
+
+        public static class Rooms
+        {
+            public static List<RoomScript> AllRooms = new List<RoomScript>();
+            public static TitleScreen TitleScreen;
+
+            public static void PrecreateAll(IGame game)
+            {
+                TitleScreen = new TitleScreen(game);
+
+                AllRooms.Add(TitleScreen);
+            }
         }
     }
 }

@@ -13,6 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)LF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameStarter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameMenu.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rooms\RoomScript.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rooms\TitleScreen.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SpriteFont.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SpriteFontRenderer.cs" />

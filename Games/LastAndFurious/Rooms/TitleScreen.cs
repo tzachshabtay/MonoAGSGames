@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AGS.API;
 using AGS.Engine;
 
@@ -16,34 +15,19 @@ namespace LastAndFurious
     // * Inheriting this component will possibly let to create simple room script classes.
     //
 
-    public class TitleScreen
+    public class TitleScreen : RoomScript
     {
-        private IRoom _room;
-        private IGame _game;
-        private const string _roomID = "TitleScreen";
-        private const string _roomAssetFolder = LF.RoomAssetFolder + "TitleScreen/";
+        private const string ROOM_ID = "TitleScreen";
         private IAudioClip _music;
 
-        public IRoom Room { get => _room; }
-
-        public TitleScreen(IGame game)
+        public TitleScreen(IGame game) : base(game, ROOM_ID)
         {
-            _game = game;
         }
 
-        private async Task<IObject> addObject(string name, string gfile, int x, int y)
-        {
-            IObject o = _game.Factory.Object.GetObject(name);
-            o.Image = await _game.Factory.Graphics.LoadImageAsync(_roomAssetFolder + gfile);
-            o.X = x;
-            o.Y = y;
-            return o;
-        }
-
-        public async Task<IRoom> LoadAsync()
+        protected override async Task<IRoom> LoadAsync()
         {
             IGameFactory factory = _game.Factory;
-            _room = factory.Room.GetRoom(_roomID);
+            _room = factory.Room.GetRoom(ROOM_ID);
             _room.Background = await addObject("TitleScreen.BG", "gradiented-title.png", 0, -80);
 
             // TODO: label with the game version number in the corner of the title screen
