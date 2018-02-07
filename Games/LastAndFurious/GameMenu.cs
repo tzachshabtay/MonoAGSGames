@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Threading.Tasks;
 using AGS.API;
 using AGS.Engine;
 
@@ -106,7 +106,7 @@ namespace LastAndFurious
                     _menu.OptionSpacing = STARTMENU_OPTION_SPACING;
                     _menu.SelectorGraphic = LF.StartMenu.Selector;
                     _menu.SelectorX = DIAMOND_X - STARTMENU_OPTION_X;
-                    _menu.AddItem("Start");
+                    _menu.AddItem("Start", onStart);
                     _menu.AddItem("Credits");
                     _menu.AddItem("Quit", onQuit);
                     break;
@@ -222,6 +222,13 @@ namespace LastAndFurious
                 return;
             }
             */
+        }
+
+        private static async void onStart()
+        {
+            HideMenu();
+            await LF.RaceAssets.LoadAll(_game);
+            await LF.Rooms.RaceRoom.GotoAsync();
         }
 
         private static void onQuit()

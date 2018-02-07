@@ -24,14 +24,14 @@ namespace LastAndFurious
         {
         }
 
-        protected override async Task<IRoom> LoadAsync()
+        protected override async Task<IRoom> loadAsync()
         {
             IGameFactory factory = _game.Factory;
             _room = factory.Room.GetRoom(ROOM_ID);
             _room.Background = await addObject("TitleScreen.BG", "gradiented-title.png", 0, -80);
 
             // TODO: label with the game version number in the corner of the title screen
-            var label = factory.UI.GetLabel("VersionLabel", LF.GAME_VERSION, 0, 0, 0, 0);
+            var label = factory.UI.GetLabel("VersionLabel", LF.GAME_VERSION, 0, 0, 0, 0, addToUi: false);
             label.TextConfig.Font = AGSGameSettings.DefaultTextFont;
             label.TextConfig.AutoFit = AutoFit.LabelShouldFitText;
             _room.Objects.Add(label);
@@ -56,7 +56,7 @@ namespace LastAndFurious
 
         private void onAfterFadeIn()
         {
-            _music.Play(true);
+            //_music.Play(true);
         }
 
         private void onLeave()

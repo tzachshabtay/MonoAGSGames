@@ -10,8 +10,6 @@ namespace LastAndFurious
 
         protected IRoom _room;
 
-        protected virtual async Task<IRoom> LoadAsync() { return null; }
-
         public IRoom Room { get => _room; }
 
         public RoomScript(IGame game, string assetFolder)
@@ -25,7 +23,7 @@ namespace LastAndFurious
             if (_room != null)
                 return _room;
 
-            _room = await LoadAsync();
+            _room = await loadAsync();
             _game.State.Rooms.Add(_room);
             return _room;
         }
@@ -36,6 +34,8 @@ namespace LastAndFurious
             await _game.State.ChangeRoomAsync(_room);
         }
 
+        protected virtual async Task<IRoom> loadAsync() { return null; }
+
         protected async Task<IObject> addObject(string name, string gfile, int x = 0, int y = 0)
         {
             IObject o = _game.Factory.Object.GetObject(name);
@@ -43,6 +43,17 @@ namespace LastAndFurious
             o.X = x;
             o.Y = y;
             return o;
+        }
+
+        /// <summary>
+        /// Inverts vector Y coordinate, transforming it from AGS to MonoAGS-compatible
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        protected Vector2 compatVector(int x, int y)
+        {
+            return new Vector2(x, _room.Limits.Height - y);
         }
     }
 }

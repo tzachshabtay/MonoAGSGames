@@ -9,13 +9,24 @@
     <Import_RootNamespace>LastAndFurious</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)DriverCharacter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameMenuComponent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameStarter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameMenu.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MathEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Race.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vectors.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VehicleControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VehiclePhysicsBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VehicleRacer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rooms\RaceRoom.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rooms\RoomScript.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rooms\TitleScreen.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SpriteFont.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SpriteFontRenderer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VehicleBehavior.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VehiclePhysics.cs" />
   </ItemGroup>
 </Project>
