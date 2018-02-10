@@ -47,9 +47,9 @@ namespace LastAndFurious
                 _veh.Brakes = 0.0F;
 
             if (_input.IsKeyDown(Key.Left))
-                _veh.SteeringWheelAngle = -SteeringAngle;
-            else if (_input.IsKeyDown(Key.Right))
                 _veh.SteeringWheelAngle = SteeringAngle;
+            else if (_input.IsKeyDown(Key.Right))
+                _veh.SteeringWheelAngle = -SteeringAngle;
             else
                 _veh.SteeringWheelAngle = 0.0F;
         }
