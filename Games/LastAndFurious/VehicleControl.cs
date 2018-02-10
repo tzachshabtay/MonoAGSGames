@@ -19,7 +19,7 @@ namespace LastAndFurious
         {
             _game = game;
             _input = game.Input;
-            SteeringAngle = SteeringAngle;
+            SteeringAngle = steeringAngle;
         }
 
         public override void Init(IEntity entity)
@@ -27,6 +27,7 @@ namespace LastAndFurious
             base.Init(entity);
             entity.Bind<VehiclePhysics>(c => { _veh = c; _game.Events.OnRepeatedlyExecute.Subscribe(repExec); },
                                         _ => { _veh = null; _game.Events.OnRepeatedlyExecute.Unsubscribe(repExec); });
+            _game.Events.OnRepeatedlyExecute.Subscribe(repExec);
         }
 
         private void repExec()

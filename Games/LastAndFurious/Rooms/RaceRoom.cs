@@ -9,8 +9,12 @@ namespace LastAndFurious
         private const string ROOM_ID = "RaceRoom";
         private IAudioClip _music;
 
-        private Vector2[] _startingGrid;
+        private Vector2[] _startingGrid; // TODO: move to Track config
         private Race _race;
+        private Track _track;
+        // TODO: move to camera manager
+        private IObject _cameraTarget;
+
 
         public RaceRoom(IGame game) : base(game, ROOM_ID)
         {
@@ -40,7 +44,8 @@ namespace LastAndFurious
             _startingGrid[4] = compatVector(1268, 326 + 12);
             _startingGrid[5] = compatVector(1300, 273 + 12);
 
-            _race = new Race(_game, _room);
+            _track = new Track();
+            _race = new Race(_game, _room, _track);
 
             return _room;
         }
@@ -51,7 +56,11 @@ namespace LastAndFurious
             FadeOut(0);
             StopAllAudio();
             */
-            setupAIRace();
+
+            // TODO:
+            //setupAIRace();
+            setupSinglePlayerRace();
+
             //_music.Play(true);
 
             // TODO: temp, remove
@@ -79,7 +88,10 @@ namespace LastAndFurious
 
         private void repExec()
         {
+            if (_game.State.Paused)
+                return;
             // TODO: temp, remove/change
+            /*
             IInput input = _game.Input;
             if (input.IsKeyDown(Key.Up))
                 _game.State.Viewport.Y += 5F;
@@ -99,10 +111,10 @@ namespace LastAndFurious
                 _game.State.Viewport.Angle -= 1F;
             if (input.IsKeyDown(Key.PageUp))
                 _game.State.Viewport.ScaleX = _game.State.Viewport.ScaleY = _game.State.Viewport.ScaleX + 0.02F;
+                */
 
             /* TODO:
-            if (IsGamePaused())
-                return;
+            
 
             if (RaceStartSequence > 0)
             {
@@ -191,13 +203,41 @@ namespace LastAndFurious
             */
         }
 
-        private void PositionCarOnGrid(VehicleBehavior car, int gridpos)
+        private void positionCarOnGrid(VehicleBehavior car, int gridpos)
         {
             // TODO: checkme, I do not remember why it needed all this adjustment
             Vector2 pos = _startingGrid[gridpos];
             pos.X += 4 + car.Physics.BodyLength / 2;
             pos.Y += 1;
-            car.Physics.Reset(pos, new Vector2(-1, 0));
+            car.Physics.Reset(_track, pos, new Vector2(-1, 0));
+        }
+
+        private void cameraTargetPlayerCar(bool snap)
+        {
+            _cameraTarget = _race.PlayerCar.o;
+            /* TODO:
+            Camera.TargettingAcceleration = 0.0;
+            Camera.TargetCharacter = player;
+            if (snap)
+                Camera.Snap();
+                */
+        }
+
+        private void cameraTargetRandomAICar(bool snap)
+        {
+            _cameraTarget = _race.PlayerCar.o;
+            /* TODO:
+            Camera.TargettingAcceleration = 0.5;
+            Camera.TargetCharacter = character[cAICar1.ID + Random(5)];
+            if (snap)
+                Camera.Snap();
+                */
+        }
+
+        // TODO: work around this
+        private IObject getCameraTarget()
+        {
+            return _cameraTarget;
         }
 
         private void setupAIRace()
@@ -209,10 +249,10 @@ namespace LastAndFurious
             LF.RaceAssets.Drivers.Values.CopyTo(drivers, 0);
             Utils.Shuffle(drivers, new System.Random());
 
-            for (int i = 0; i < Race.MAX_RACING_CARS; ++i)
+            for (int i = 0; i < drivers.Length; ++i)
             {
-                var car = _race.AddRacingCar(drivers[i]);
-                PositionCarOnGrid(car, i);
+                var car = _race.AddRacingCar(drivers[i], false);
+                positionCarOnGrid(car, i);
             }
             /*
 
@@ -226,9 +266,12 @@ namespace LastAndFurious
                 AssignAIToCar(i);
                 Racers[i].Activate(drivers[i]);
             }
+            */
 
-            CameraTargetRandomAICar(true);
+            _game.State.Viewport.Camera.Target = getCameraTarget;
+            cameraTargetRandomAICar(true);
 
+            /*
             IsAIRace = true;
             RaceStartSequence = 0;
             RaceEndSequence = 0;
@@ -242,29 +285,30 @@ namespace LastAndFurious
         {
             _game.State.Paused = true;
             _race.Clear();
+            // TODO: take from config
+            DriverCharacter driver;
+            LF.RaceAssets.Drivers.TryGetValue("blue", out driver);
+            _race.PlayerDriver = driver;
+
+            // TODO: ThisRace.Opponents
+
             /*
+            DriverCharacter[] drivers = new DriverCharacter[LF.RaceAssets.Drivers.Count];
+            LF.RaceAssets.Drivers.Values.CopyTo(drivers, 0);
+            Utils.Shuffle(drivers, new System.Random());
 
-            int drivers[] = new int[MAX_RACING_CARS - 1];
-            int i;
-            for (i = 0; i < MAX_RACING_CARS - 1; i++)
+            for (int i = 0; i < drivers.Length; ++i)
             {
-                if (i < ThisRace.PlayerDriver)
-                    drivers[i] = i;
-                else
-                    drivers[i] = i + 1;
+                var car = _race.AddRacingCar(drivers[i], drivers[i] == _race.PlayerDriver);
+                positionCarOnGrid(car, i);
             }
-            Shuffle(drivers, MAX_RACING_CARS - 1);
+            */
 
-            cPlayerCar.Baseline = 1;
-            Cars[0].SetCharacter(cPlayerCar, 7 + ThisRace.PlayerDriver, eDirectionUp, CARVIEWPLAYER1, 0, 0);
-            PositionCarOnGrid(0, 0);
+            var car = _race.AddRacingCar(_race.PlayerDriver, false);
+            positionCarOnGrid(car, 0);
 
-            for (i = 0; i < ThisRace.Opponents; i++)
-            {
-                character[cAICar1.ID + i].Baseline = 1;
-                Cars[i + 1].SetCharacter(character[cAICar1.ID + i], 7 + drivers[i], eDirectionUp, CARVIEWPLAYER2 + i, 0, 0);
-                PositionCarOnGrid(i + 1, i + 1);
-            }
+
+            /*
 
             ReadRaceConfig();
             LoadAI();
@@ -278,9 +322,12 @@ namespace LastAndFurious
                 AssignAIToCar(i + 1);
                 Racers[i + 1].Activate(drivers[i]);
             }
+            */
 
-            CameraTargetPlayerCar(true);
+            _game.State.Viewport.Camera.Target = getCameraTarget;
+            cameraTargetPlayerCar(true);
 
+            /*
             IsAIRace = false;
             RaceStartSequence = 0;
             RaceEndSequence = 0;

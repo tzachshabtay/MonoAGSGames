@@ -9,84 +9,70 @@ namespace LastAndFurious
     /// </summary>
     public abstract class VehiclePhysicsBase : AGSComponent
     {
-        /* TODO:
-  
-      /// Initialize vehicle by binding it to the given character and graphical representation
-      import void SetCharacter(Character *c, int carSprite, CharacterDirection carSpriteDir, int view = 0, int loop = 0, int frame = 0);
-      /// Reset vehicle, place at given position, zero all forces, etc
-      import void Reset(VectorF *pos, VectorF *dir);
-      /// Run vehicle physics
-      import void Run(float deltaTime);
-      /// Uninitialize vehicle by removing character's reference and all allocated resources
-      import void UnInit();
-  
-      protected import void DetachCharacter();
-      protected import void ResetBase(VectorF *pos, VectorF *dir);
-      protected import void RunPhysicsBase(float deltaTime);
-      protected import void UnInitBase();
-  
-      /// Synchronizes character with the vehicle position and direction
-      protected import void SyncCharacter();
-      /// Update vehicle body parameters with the new position and direction
-      protected import void UpdateBody();
-  
-  
-      /*protected*//*
-        Character* c; // character that represents this vehicle
-
-        protected int carSprite; // default car sprite, at angle carAngle
-        
-
-        
-
-        
-            */
-
-
         public const int NUM_COLLISION_POINTS = 4;
 
+        protected IGame _game;
         protected IObject _object;
+        protected Track _track;
+
+        protected float bodyLength;
+        protected float bodyWidth;
+        protected float carModelAngle;
+
+        protected Vector2 position;
+        protected Vector2 direction;
+        protected Vector2 velocity;
+        protected float angularVelocity;
 
         /// <summary>
         /// Length of the vehicle.
         /// </summary>
-        public float BodyLength { get; protected set; }
+        public float BodyLength { get => bodyLength; }
         /// <summary>
         /// Width of the vehicle.
         /// </summary>
-        public float BodyWidth { get; protected set; }
+        public float BodyWidth { get => bodyWidth; }
         /// <summary>
         /// Angle at which the vehicle is depicted on the provided sprite.
         /// Required to properly apply current rotation to the visible object.
         /// </summary>
         /// TODO: instead, work with Sprite and have initial rotation set in sprite!
-        public float CarModelAngle { get; protected set; }
+        public float CarModelAngle { get => carModelAngle; }
         /// <summary>
         /// Vehicle position.
         /// </summary>
-        public Vector2 Position { get; protected set; }
+        public Vector2 Position { get => position; }
         /// <summary>
         /// Vehicle face direction.
         /// </summary>
-        public Vector2 Direction { get; protected set; }
+        public Vector2 Direction { get => direction; }
         /// <summary>
         /// Final linear velocity, summing up all the forces
         /// </summary>
-        public Vector2 Velocity { get; protected set; }
+        public Vector2 Velocity { get => velocity; }
         /// <summary>
         /// Final angular velocity (positive value rotates vehicle clockwise)
         /// </summary>
-        public float AngularVelocity { get; protected set; }
+        public float AngularVelocity { get => angularVelocity; }
         /// <summary>
         /// Relative points on the car's body at which to check the collision and interaction with enviroment
         /// </summary>
-        protected Vector2[] CollPointOff = new Vector2[NUM_COLLISION_POINTS];
+        protected Vector2[] collPointOff = new Vector2[NUM_COLLISION_POINTS];
         /// <summary>
         /// Points at which to check the collision and interaction with enviroment (absolute coordinates)
         /// </summary>
-        protected Vector2[] CollPoint = new Vector2[NUM_COLLISION_POINTS];
+        protected Vector2[] collPoint = new Vector2[NUM_COLLISION_POINTS];
+
+        /// <summary>
+        /// Gets the racing Track this vehicle is currently on.
+        /// </summary>
+        public Track RaceTrack { get => _track; }
 
 
+        public VehiclePhysicsBase(IGame game)
+        {
+            _game = game;
+        }
 
         public override void Init(IEntity entity)
         {
@@ -97,6 +83,7 @@ namespace LastAndFurious
             {
                 _object = o;
             }
+            _game.Events.OnRepeatedlyExecute.Subscribe(repExec);
         }
 
         /// <summary>
@@ -128,27 +115,27 @@ namespace LastAndFurious
                 throw new ArgumentException("Car model angle cannot be diagonal, or out of [0, 359] range, please provide sprite having one of the following angles: 0, 90, 180 or 270 degrees.");
             }
             
-            CarModelAngle = originalModelAngle;
+            carModelAngle = originalModelAngle;
 
-            BodyLength = carl;
-            BodyWidth = carw;
+            bodyLength = carl;
+            bodyWidth = carw;
 
-            CollPointOff[0] = new Vector2(carl / 2, -carw / 2);
-            CollPointOff[1] = new Vector2(carl / 2, carw / 2);
-            CollPointOff[2] = new Vector2(-carl / 2, carw / 2);
-            CollPointOff[3] = new Vector2(-carl / 2, -carw / 2);
+            collPointOff[0] = new Vector2(carl / 2, -carw / 2);
+            collPointOff[1] = new Vector2(carl / 2, carw / 2);
+            collPointOff[2] = new Vector2(-carl / 2, carw / 2);
+            collPointOff[3] = new Vector2(-carl / 2, -carw / 2);
 
-            SyncObject();
+            syncObject();
         }
 
         public void DetachCarModel()
         {
-            BodyLength = 0F;
-            BodyWidth = 0F;
-            CarModelAngle = 0F;
+            bodyLength = 0F;
+            bodyWidth = 0F;
+            carModelAngle = 0F;
 
             for (int i = 0; i < NUM_COLLISION_POINTS; i++)
-                CollPointOff[i] = new Vector2();
+                collPointOff[i] = new Vector2();
         }
 
         /// <summary>
@@ -156,49 +143,72 @@ namespace LastAndFurious
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="dir"></param>
-        public virtual void Reset(Vector2 pos, Vector2 dir)
+        public virtual void Reset(Track track, Vector2 pos, Vector2 dir)
         {
-            ResetBase(pos, dir);
-            UpdateBody();
-            SyncObject();
+            resetBase(track, pos, dir);
+            updateBody();
+            syncObject();
         }
 
-        protected void ResetBase(Vector2 pos, Vector2 dir)
+        /// Run vehicle physics
+        public virtual void Run(float deltaTime)
         {
+            runPhysicsBase(deltaTime);
+            updateBody();
+            syncObject();
+        }
+
+        protected void repExec()
+        {
+            float delta_time = (float)(1.0 / AGSGame.UPDATE_RATE);
+            Run(delta_time);
+        }
+
+        protected void resetBase(Track track, Vector2 pos, Vector2 dir)
+        {
+            _track = track;
             if (pos == null)
-                Position = new Vector2(_object.X, _object.Y);
+                position = new Vector2(_object.X, _object.Y);
             else
-                Position = pos;
+                position = pos;
             if (dir == null)
-                Direction = new Vector2(0, 1);
+                direction = new Vector2(0, 1);
             else
             {
-                Direction = dir;
-                Direction.Normalize();
+                direction = Vectors.SafeNormalize(dir);
             }
             
             for (int i = 0; i < NUM_COLLISION_POINTS; i++)
-                CollPoint[i] = new Vector2();
+                collPoint[i] = new Vector2();
 
-            Velocity = Vector2.Zero;
-            AngularVelocity = 0;
+            velocity = Vector2.Zero;
+            angularVelocity = 0;
         }
 
-        protected void SyncObject()
+        protected void runPhysicsBase(float deltaTime)
+        {
+            // update position using last velocity scaled by time
+            position = Vectors.AddScaled(position, velocity, deltaTime);
+            float rot_angle = angularVelocity * deltaTime;
+            if (rot_angle != 0.0)
+                direction = Vectors.Rotate(direction, rot_angle);
+        }
+
+        protected void syncObject()
         {
             if (_object == null || Position == null)
                 return;
 
-            _object.X = Position.X;
-            _object.Y = Position.Y;
+            _object.X = position.X;
+            _object.Y = position.Y;
 
-            float angle = MathHelper.RadiansToDegrees(Direction.Angle());
+            float angle = MathHelper.RadiansToDegrees(direction.Angle());
             angle = angle - CarModelAngle;
             angle = MathEx.Angle360(angle);
             _object.Angle = angle;
         }
 
-        protected void UpdateBody()
+        protected void updateBody()
         {
             /*
              * // update collision points with the new position and direction

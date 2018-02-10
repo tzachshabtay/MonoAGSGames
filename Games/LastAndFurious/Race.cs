@@ -9,25 +9,41 @@ namespace LastAndFurious
 
         IGame _game;
         IRoom _room;
+        Track _track;
         // TODO: was not sure what is the best way to keep custom component field exposed
         List<(VehicleBehavior veh, IObject o)> _cars = new List<(VehicleBehavior, IObject)>();
 
-        int _laps;
-        int _opponents;
-        int _playerDriver; // player's character
         // TODO:
         // AiAndPhysicsOption AiAndPhysics;
         bool CarCollisions;
-        
+
         /*
         List<int> _driverPositions;
         List<int> _racersFinished;
         */
 
-        public Race(IGame game, IRoom room)
+        // TODO: separate RaceConfig
+        /// <summary>
+        /// The driver character player chosen.
+        /// </summary>
+        public DriverCharacter PlayerDriver { get; set; }
+        /// <summary>
+        /// Number of laps race consists of.
+        /// </summary>
+        public int Laps { get; set; }
+        /// <summary>
+        /// Number of AI opponents player races against.
+        /// </summary>
+        public int Opponents { get; set; }
+
+        public (VehicleBehavior veh, IObject o) PlayerCar { get; private set; }
+
+
+        public Race(IGame game, IRoom room, Track track)
         {
             _game = game;
             _room = room;
+            _track = track;
         }
 
         public void Clear()
@@ -42,20 +58,44 @@ namespace LastAndFurious
             */
         }
 
-        public VehicleBehavior AddRacingCar(DriverCharacter c)
+        public VehicleBehavior AddRacingCar(DriverCharacter c, bool ai)
         {
             IObject o = _game.Factory.Object.GetObject(c.Name + "_car");
-            // TODO:
-            // Cars[i].SetCharacter(character[cAICar1.ID + i], 7 + drivers[i], eDirectionUp, CARVIEWPLAYER1 + i, 0, 0);
-            // TODO: make sure the object's pivot is at the center
             VehicleBehavior beh = new VehicleBehavior();
             if (!o.AddComponent<VehicleBehavior>(beh))
                 return null;
+            if (ai)
+            {
+                var aiCtrl = new VehicleAI(_game);
+                if (!o.AddComponent<VehicleAI>(aiCtrl))
+                    return null;
+            }
+            else
+            {
+                var ctrl = new VehicleControl(_game);
+                if (!o.AddComponent<VehicleControl>(ctrl))
+                    return null;
+            }
+
+
+            // TODO: read from config
+            VehiclePhysics ph = beh.Physics;
+            ph.BodyMass = 1.8F;
+            ph.BodyAerodynamics = 1.0F;
+            ph.HardImpactLossFactor = 0.5F;
+            ph.SoftImpactLossFactor = 0.8F;
+            ph.EngineMaxPower = 800.0F;
+            ph.StillTurningVelocity = 0.5F;
+            ph.DriftVelocityFactor = 200.0F;
+
+
             beh.Racer.Driver = c;
             beh.Physics.AttachCarModel(c.CarModel, c.CarModelAngle);
             o.Image = c.CarModel;
             o.Pivot = new PointF(0.5F, 0.5F);
             _cars.Add((beh, o));
+            if (!ai)
+                PlayerCar = (beh, o);
             _room.Objects.Add(o);
             return beh;
         }

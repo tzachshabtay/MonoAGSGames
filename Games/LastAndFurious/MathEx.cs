@@ -16,5 +16,15 @@ namespace LastAndFurious
             if (angle >= 0) return angle;
             return 360 - (-angle);
         }
+
+        // Converts angle to the range of [-Pi..+Pi], the angle must be in the range [-3*Pi, 3*Pi]
+        public static float AnglePiFast(float rads)
+        {
+            if (rads > Math.PI)
+                return (float)(rads - Math.PI * 2.0);
+            else if (rads < -Math.PI)
+                return (float)(rads + Math.PI * 2.0);
+            return rads;
+        }
     }
 }
