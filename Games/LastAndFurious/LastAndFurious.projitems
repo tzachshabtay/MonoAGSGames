@@ -9,26 +9,31 @@
     <Import_RootNamespace>LastAndFurious</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)DriverCharacter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Race\DriverCharacter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameMenuComponent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameStarter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameMenu.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)MathEx.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Race.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Track.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Vectors.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)VehicleAI.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)VehicleControl.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)VehiclePhysicsBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)VehicleRacer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\MathEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Race\Race.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Race\Track.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Vectors.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleAI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehiclePhysicsBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleRacer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rooms\RaceRoom.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rooms\RoomScript.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rooms\TitleScreen.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SpriteFont.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SpriteFontRenderer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)VehicleBehavior.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)VehiclePhysics.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\SpriteFont.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\SpriteFontRenderer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleBehavior.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehiclePhysics.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Utils\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Race\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Vehicle\" />
   </ItemGroup>
 </Project>
