@@ -46,6 +46,7 @@ namespace LastAndFurious
     {
         IImage _background;
         int[,] _regionMap;
+        int[] _regionMapSize;
         TrackRegion _nullRegion; // return for safety from GetRegionAt
         TrackRegion[] _regions;
 
@@ -63,6 +64,7 @@ namespace LastAndFurious
         {
             _background = background;
             _regionMap = regionMap;
+            _regionMapSize = new int[2] { regionMap.GetLength(0), _regionMap.GetLength(1) };
             _regions = new TrackRegion[regionCount];
             for (int i = 0; i < regionCount; ++i)
                 _regions[i] = new TrackRegion(i);
@@ -80,6 +82,8 @@ namespace LastAndFurious
         /// <returns></returns>
         public TrackRegion GetRegionAt(int x, int y)
         {
+            if (x < 0 || y < 0 || x >= _regionMapSize[0] || y >= _regionMapSize[1])
+                return _nullRegion;
             // TODO: safety checks and throws
             return _regions[ _regionMap[x, y] ];
         }

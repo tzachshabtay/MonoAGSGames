@@ -20,7 +20,12 @@ namespace LastAndFurious
             if (!GetItem(section, key, out s))
                 return def_val;
             if (!bool.TryParse(s, out val))
-                return def_val;
+            {
+                int ival;
+                if (!int.TryParse(s, out ival))
+                    return def_val;
+                val = ival != 0;
+            }
             return val;
         }
 
