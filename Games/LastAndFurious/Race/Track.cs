@@ -1,4 +1,5 @@
-﻿
+﻿using AGS.API;
+
 namespace LastAndFurious
 {
     /// <summary>
@@ -43,24 +44,32 @@ namespace LastAndFurious
     /// </summary>
     public class Track
     {
-        TrackRegion _dummyRegion;
+        IImage _background;
+        int[,] _regionMap;
+        TrackRegion _nullRegion; // return for safety from GetRegionAt
+        TrackRegion[] _regions;
+
+        public IImage Background { get => _background; }
+        public TrackRegion[] Regions { get => _regions; }
 
         /// Get/set track's gravity (default is 9.807)
         public float Gravity { get; set; }
         /// Get/set track's air resistance factor. Air resistance force is applied to any object moving on the
         /// track, and is proportional to its squared velocity.
         public float AirResistance { get; set; }
+        
 
-        public Track()
+        public Track(IImage background, int regionCount, int[,] regionMap)
         {
+            _background = background;
+            _regionMap = regionMap;
+            _regions = new TrackRegion[regionCount];
+            for (int i = 0; i < regionCount; ++i)
+                _regions[i] = new TrackRegion(i);
+            _nullRegion = new TrackRegion(-1);
+
             Gravity = 9.807F;
             AirResistance = 0.01F;
-            _dummyRegion = new TrackRegion(0);
-            _dummyRegion.IsObstacle = false;
-            _dummyRegion.TerraSlideFriction = 24.0F;
-            _dummyRegion.TerraRollFriction = 0.7F;
-            _dummyRegion.TerraGrip = 0.6F;
-            _dummyRegion.EnvResistance = 0.45F;
         }
 
         /// <summary>
@@ -69,10 +78,10 @@ namespace LastAndFurious
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns></returns>
-        public TrackRegion GetRegion(int x, int y)
+        public TrackRegion GetRegionAt(int x, int y)
         {
-            // TODO: implement a regions mask
-            return _dummyRegion;
+            // TODO: safety checks and throws
+            return _regions[ _regionMap[x, y] ];
         }
     }
 }

@@ -37,6 +37,7 @@ namespace LastAndFurious
         public int Opponents { get; set; }
 
         public (VehicleBehavior veh, IObject o) PlayerCar { get; private set; }
+        public IList<(VehicleBehavior veh, IObject o)> Cars { get => _cars; }
 
 
         public Race(IGame game, IRoom room, Track track)
@@ -76,18 +77,6 @@ namespace LastAndFurious
                 if (!o.AddComponent<VehicleControl>(ctrl))
                     return null;
             }
-
-
-            // TODO: read from config
-            VehiclePhysics ph = beh.Physics;
-            ph.BodyMass = 1.8F;
-            ph.BodyAerodynamics = 1.0F;
-            ph.HardImpactLossFactor = 0.5F;
-            ph.SoftImpactLossFactor = 0.8F;
-            ph.EngineMaxPower = 800.0F;
-            ph.StillTurningVelocity = 0.5F;
-            ph.DriftVelocityFactor = 200.0F;
-
 
             beh.Racer.Driver = c;
             beh.Physics.AttachCarModel(c.CarModel, c.CarModelAngle);

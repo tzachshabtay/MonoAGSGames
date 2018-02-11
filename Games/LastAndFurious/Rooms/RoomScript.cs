@@ -36,6 +36,15 @@ namespace LastAndFurious
 
         protected virtual async Task<IRoom> loadAsync() { return null; }
 
+        protected IObject addObject(string name, IImage image, int x = 0, int y = 0)
+        {
+            IObject o = _game.Factory.Object.GetObject(name);
+            o.Image = image;
+            o.X = x;
+            o.Y = y;
+            return o;
+        }
+
         protected async Task<IObject> addObject(string name, string gfile, int x = 0, int y = 0)
         {
             IObject o = _game.Factory.Object.GetObject(name);

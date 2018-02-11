@@ -249,7 +249,7 @@ namespace LastAndFurious
                 Vector2 colpt = collPoint[i];
                 int room_x = (int)Math.Round(colpt.X);
                 int room_y = (int)Math.Round(colpt.Y);
-                TrackRegion region = _track.GetRegion(room_x, room_y);
+                TrackRegion region = _track.GetRegionAt(room_x, room_y);
                 if (region.IsObstacle)
                     collPtHit[i] = region.ID; // this is obstacle
                 else
@@ -382,11 +382,6 @@ namespace LastAndFurious
             runPhysicsBase(deltaTime);
             updateBody();
             updateEnviroment();
-
-            if (engineAccelerator > 0)
-            {
-
-            }
 
             //
             // Engine

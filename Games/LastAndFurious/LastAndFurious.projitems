@@ -14,12 +14,17 @@
     <Compile Include="$(MSBuildThisFileDirectory)LF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameStarter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameMenu.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Race\RaceConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Race\TrackConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Race\TrackLoader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\IniGetter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\MathEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\Race.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\Track.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Utils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Vectors.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleAI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Race\VehicleConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleControl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehiclePhysicsBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleRacer.cs" />
@@ -30,10 +35,5 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utils\SpriteFontRenderer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleBehavior.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehiclePhysics.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Utils\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Race\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Vehicle\" />
   </ItemGroup>
 </Project>

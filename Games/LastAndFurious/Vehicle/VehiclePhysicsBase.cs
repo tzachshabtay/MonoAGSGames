@@ -210,16 +210,14 @@ namespace LastAndFurious
 
         protected void updateBody()
         {
-            /*
-             * // update collision points with the new position and direction
-              int i;
-              for (i = 0; i < NUM_COLLISION_POINTS; i++) {
-                VectorF *colpt = this.collPoint[i];
-                colpt.set(this.collPointOff[i]);
-                colpt.rotate(this.direction.angle());
-                colpt.add(this.position);
-              }
-             */
+            // update collision points with the new position and direction
+            for (int i = 0; i < NUM_COLLISION_POINTS; i++)
+            {
+                Vector2 cp = collPointOff[i];
+                cp = Vectors.Rotate(cp, direction.Angle());
+                cp = Vector2.Add(cp, position);
+                collPoint[i] = cp;
+            }
         }
     }
 }

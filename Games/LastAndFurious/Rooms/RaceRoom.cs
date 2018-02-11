@@ -24,7 +24,6 @@ namespace LastAndFurious
         {
             IGameFactory factory = _game.Factory;
             _room = factory.Room.GetRoom(ROOM_ID);
-            _room.Background = await addObject("RaceRoom.BG", "track01.png");
             _room.RoomLimitsProvider = AGSRoomLimits.FromBackground;
 
             _music = await factory.Sound.LoadAudioClipAsync(LF.MusicAssetFolder + "Welcome_to_the_Show.ogg");
@@ -35,7 +34,12 @@ namespace LastAndFurious
             _game.Events.OnRepeatedlyExecute.Subscribe(repExec);
             _game.Input.KeyDown.Subscribe(onKeyDown);
 
+            _track = await TrackLoader.LoadAsync(_roomAssetFolder + "track01.ini", _roomAssetFolder, _game.Factory.Graphics);
+            _race = new Race(_game, _room, _track);
 
+            _room.Background = addObject("RaceRoom.BG", _track.Background);
+
+            // TODO: move to track config
             _startingGrid = new Vector2[Race.MAX_RACING_CARS];
             _startingGrid[0] = compatVector(1140, 326 + 12);
             _startingGrid[1] = compatVector(1172, 273 + 12);
@@ -43,9 +47,6 @@ namespace LastAndFurious
             _startingGrid[3] = compatVector(1236, 273 + 12);
             _startingGrid[4] = compatVector(1268, 326 + 12);
             _startingGrid[5] = compatVector(1300, 273 + 12);
-
-            _track = new Track();
-            _race = new Race(_game, _room, _track);
 
             return _room;
         }
@@ -62,10 +63,6 @@ namespace LastAndFurious
             setupSinglePlayerRace();
 
             //_music.Play(true);
-
-            // TODO: temp, remove
-            _game.State.Viewport.X = _startingGrid[0].X;
-            _game.State.Viewport.Y = _startingGrid[0].Y;
         }
 
         private void onAfterFadeIn()
@@ -254,9 +251,10 @@ namespace LastAndFurious
                 var car = _race.AddRacingCar(drivers[i], false);
                 positionCarOnGrid(car, i);
             }
-            /*
 
-            ReadRaceConfig();
+            readRaceConfig();
+
+            /*
             LoadAI();
             LoadRaceCheckpoints();
 
@@ -306,11 +304,9 @@ namespace LastAndFurious
 
             var car = _race.AddRacingCar(_race.PlayerDriver, false);
             positionCarOnGrid(car, 0);
-
-
+            
+            readRaceConfig();
             /*
-
-            ReadRaceConfig();
             LoadAI();
             LoadRaceCheckpoints();
 
@@ -342,6 +338,23 @@ namespace LastAndFurious
             gRaceOverlay.Visible = false;
             */
             _game.State.Paused = false;
+        }
+
+        private void readRaceConfig()
+        {
+            // TODO: switch between config types
+            TrackConfig tcfg = TrackConfigurator.LoadConfig(_track, _roomAssetFolder + "race_safe.ini");
+            if (tcfg != null)
+            {
+                TrackConfigurator.ApplyConfig(_track, tcfg);
+            }
+
+            VehicleConfig vcfg = VehicleConfigurator.LoadConfig(_track, _roomAssetFolder + "race_safe.ini");
+            if (vcfg != null)
+            {
+                foreach (var car in _race.Cars)
+                    VehicleConfigurator.ApplyConfig(car.veh.Physics, vcfg);
+            }
         }
     }
 }
