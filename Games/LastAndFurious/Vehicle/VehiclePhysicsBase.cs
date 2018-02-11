@@ -134,7 +134,7 @@ namespace LastAndFurious
             bodyWidth = 0F;
             carModelAngle = 0F;
 
-            for (int i = 0; i < NUM_COLLISION_POINTS; i++)
+            for (int i = 0; i < NUM_COLLISION_POINTS; ++i)
                 collPointOff[i] = new Vector2();
         }
 
@@ -178,7 +178,7 @@ namespace LastAndFurious
                 direction = Vectors.SafeNormalize(dir);
             }
             
-            for (int i = 0; i < NUM_COLLISION_POINTS; i++)
+            for (int i = 0; i < NUM_COLLISION_POINTS; ++i)
                 collPoint[i] = new Vector2();
 
             velocity = Vector2.Zero;

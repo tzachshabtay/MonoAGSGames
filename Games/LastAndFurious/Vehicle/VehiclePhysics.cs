@@ -209,7 +209,7 @@ namespace LastAndFurious
             infoImpact = new Vector2();
 
             int i;
-            for (i = 0; i < NUM_COLLISION_POINTS; i++)
+            for (i = 0; i < NUM_COLLISION_POINTS; ++i)
             {
                 oldCollPt[i] = new Vector2();
                 collPtHit[i] = -1;
@@ -300,16 +300,17 @@ namespace LastAndFurious
                                                 // TODO: also, what about connecting to weightForce here?  
         }
 
-        protected void runCollision(Vector2 impactVelocity, float deltaTime)
+        protected bool runCollision(float deltaTime, out Vector2 impactVelocity)
         {
+            impactVelocity = Vector2.Zero;
             if (numHits == 0)
-                return; // no collisions
+                return false; // no collisions
 
             // Calculate impact vectors
             Vector2 posImpact = Vector2.Zero;
             Vector2 negImpact = Vector2.Zero;
             int i;
-            for (i = 0; i < NUM_COLLISION_POINTS; i++)
+            for (i = 0; i < NUM_COLLISION_POINTS; ++i)
             {
                 if (collPtHit[i] < 0)
                     continue; // point is not colliding
@@ -328,19 +329,20 @@ namespace LastAndFurious
                 if (velProjection > 0.0)
                 {
                     // Impact must fully negate current velocity project, plus add a negative fraction of original velocity
-                    Vector2.Multiply(impact, -velProjection * (2.0F - hardImpactLossFactor));
+                    impact = Vector2.Multiply(impact, -velProjection * (2.0F - hardImpactLossFactor));
                     // Note that we do not simply summ impact forces, we take the maximum of each vector component,
                     // because car can hit obstacles with more than one point.
-                    posImpact = Vector2.Max(posImpact, impact);
-                    negImpact = Vector2.Min(negImpact, impact);
+                    posImpact = Vectors.MaxValues(posImpact, impact);
+                    negImpact = Vectors.MinValues(negImpact, impact);
 
                     //Display("velProjection = %f[impact=(%f,%f)[posImpact=(%f,%f)[negImpact=(%f,%f)", velProjection, 
                     //      impact.X, impact.Y, posImpact.X, posImpact.Y, negImpact.X, negImpact.Y);
                 }
             }
             // Finally, sum up positive and negative direction impacts
-            Vector2.Add(impactVelocity, posImpact);
-            Vector2.Add(impactVelocity, negImpact);
+            impactVelocity = Vector2.Add(impactVelocity, posImpact);
+            impactVelocity = Vector2.Add(impactVelocity, negImpact);
+            return true;
         }
 
         protected void runPhysics(float deltaTime)
@@ -355,7 +357,7 @@ namespace LastAndFurious
                 // Restore old state and reverse-calculate car position from its points
                 float x = 0;
                 float y = 0;
-                for (int i = 0; i < NUM_COLLISION_POINTS; i++)
+                for (int i = 0; i < NUM_COLLISION_POINTS; ++i)
                 {
                     collPoint[i] = oldCollPt[i];
                     collPtHit[i] = oldCollPtHit[i];
@@ -368,7 +370,7 @@ namespace LastAndFurious
             else
             {
                 // Save old state
-                for (int i = 0; i < NUM_COLLISION_POINTS; i++)
+                for (int i = 0; i < NUM_COLLISION_POINTS; ++i)
                 {
                     oldCollPt[i] = collPoint[i];
                     //oldCollPtHit[i] = collPtHit[i];
@@ -376,7 +378,7 @@ namespace LastAndFurious
                 }
             }
             // Save old state
-            for (int i = 0; i < NUM_COLLISION_POINTS; i++)
+            for (int i = 0; i < NUM_COLLISION_POINTS; ++i)
             {
                 oldCollPtHit[i] = collPtHit[i];
                 oldCollPtCarHit[i] = collPtCarHit[i];
@@ -549,8 +551,8 @@ namespace LastAndFurious
             // Do this last, so that new velocities will be taken into account,
             // otherwise car may continue moving into an obstacle.
             //
-            Vector2 impactVelocity = Vector2.Zero;
-            runCollision(impactVelocity, deltaTime);
+            Vector2 impactVelocity;
+            runCollision(deltaTime, out impactVelocity);
             // ...and apply impact forces
             velocity = Vector2.Add(velocity, impactVelocity);
             // save impact forces for external reading
@@ -592,7 +594,7 @@ namespace LastAndFurious
             float p41magnitude_squared = p41.X * p41.X + p41.Y * p41.Y;
 
             int i;
-            for (i = 0; i < NUM_COLLISION_POINTS; i++)
+            for (i = 0; i < NUM_COLLISION_POINTS; ++i)
             {
                 collPtCarHit[i] = -1;
                 Vector2 p = Vector2.Subtract(collPoint[i], rect[0]);
@@ -623,7 +625,7 @@ namespace LastAndFurious
             // Calculate impact vectors
             Vector2 posImpact = Vector2.Zero;
             Vector2 negImpact = Vector2.Zero;
-            for (i = 0; i < NUM_COLLISION_POINTS; i++)
+            for (i = 0; i < NUM_COLLISION_POINTS; ++i)
             {
                 if (collPtCarHit[i] < 0)
                     continue; // point is not colliding
@@ -648,8 +650,8 @@ namespace LastAndFurious
                     impact = Vector2.Multiply(impact, -velProjection * (1.0F - softImpactLossFactor));
                     // Note that we do not simply summ impact forces, we take the maximum of each vector component,
                     // because car can hit obstacles with more than one point.
-                    posImpact = Vectors.Max(posImpact, impact);
-                    negImpact = Vectors.Min(negImpact, impact);
+                    posImpact = Vectors.MaxValues(posImpact, impact);
+                    negImpact = Vectors.MinValues(negImpact, impact);
 
                     //Display("velProjection = %f[impact=(%f,%f)[posImpact=(%f,%f)[negImpact=(%f,%f)", velProjection, 
                     //      impact.X, impact.Y, posImpact.X, posImpact.Y, negImpact.X, negImpact.Y);
@@ -659,14 +661,14 @@ namespace LastAndFurious
                 float otherProjection = Vectors.Projection(otherVelocity, impact);
                 if (otherProjection < 0.0)
                 {
-                    Vector2.Multiply(impact, otherProjection * (1.0F - softImpactLossFactor));
-                    posImpact = Vectors.Max(posImpact, impact);
-                    negImpact = Vectors.Min(negImpact, impact);
+                    impact = Vector2.Multiply(impact, otherProjection * (1.0F - softImpactLossFactor));
+                    posImpact = Vectors.MaxValues(posImpact, impact);
+                    negImpact = Vectors.MinValues(negImpact, impact);
                 }
             }
             // Finally, sum up positive and negative direction impacts
-            Vector2.Add(impactVelocity, posImpact);
-            Vector2.Add(impactVelocity, negImpact);
+            impactVelocity = Vector2.Add(impactVelocity, posImpact);
+            impactVelocity = Vector2.Add(impactVelocity, negImpact);
 
             return impactVelocity;
         }

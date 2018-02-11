@@ -41,12 +41,12 @@ namespace LastAndFurious
             return MathUtils.FloatEquals(v.X, 0) && MathUtils.FloatEquals(v.Y, 0);
         }
 
-        public static Vector2 Max(Vector2 v, Vector2 other)
+        public static Vector2 MaxValues(Vector2 v, Vector2 other)
         {
             return new Vector2(Math.Max(v.X, other.X), v.Y = Math.Max(v.Y, other.Y));
         }
 
-        public static Vector2 Min(Vector2 v, Vector2 other)
+        public static Vector2 MinValues(Vector2 v, Vector2 other)
         {
             return new Vector2(Math.Min(v.X, other.X), Math.Min(v.Y, other.Y));
         }
