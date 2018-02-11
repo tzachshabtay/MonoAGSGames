@@ -1,15 +1,26 @@
 ﻿using System;
 using AGS.API;
+using AGS.Engine;
 
 namespace LastAndFurious
 {
     /// <summary>
     /// Two-dimensional vector algebra, implemented as an extension to Vector2 struct.
     /// </summary>
-    /// TODO: search for ways to optimize maybe.
+    /// TODO: search for ways to optimize the calculations.
     /// 
     public static class Vectors
     {
+        /// <summary>
+        /// Tests given vector and throws an exception if any of its components is not a valid number.
+        /// </summary>
+        /// <param name="v"></param>
+        public static void Assert(Vector2 v)
+        {
+            MathEx.AssertFloat(v.X);
+            MathEx.AssertFloat(v.Y);
+        }
+
         public static Vector2 AddScaled(Vector2 v, Vector2 other, float scale)
         {
             return new Vector2(v.X + other.X * scale, v.Y + other.Y * scale);
@@ -48,7 +59,7 @@ namespace LastAndFurious
         public static Vector2 SafeNormalize(Vector2 v)
         {
             float len = v.Length;
-            if (len == 0.0)
+            if (MathUtils.FloatEquals(len, 0.0F))
                 return v;
             float n = 1.0F / len;
             return new Vector2(v.X * n, v.Y * n);

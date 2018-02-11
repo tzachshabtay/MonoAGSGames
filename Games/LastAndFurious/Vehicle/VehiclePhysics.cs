@@ -3,6 +3,7 @@ using AGS.API;
 
 namespace LastAndFurious
 {
+    /// TODO: search for ways to optimize the calculations.
     public class VehiclePhysics : VehiclePhysicsBase
     {
         /// Get/set engine acceleration (0.0 - 1.0)
@@ -344,6 +345,8 @@ namespace LastAndFurious
 
         protected void runPhysics(float deltaTime)
         {
+            //Vectors.Assert(velocity); // TODO: remove
+
             // If there was collision, we need to first return the car to previous position.
             // Normally, we could also check which points did the hit, and add corresponding rotation to the car.
             // But for now we do just linear transition.
@@ -383,6 +386,8 @@ namespace LastAndFurious
             updateBody();
             updateEnviroment();
 
+            //Vectors.Assert(velocity); // TODO: remove
+
             //
             // Engine
             //
@@ -403,11 +408,16 @@ namespace LastAndFurious
             // Split current velocity on two components: rolling velocity (car's direction)
             // and sliding velocity (perpendicular to car's direction).
             //
+            //Vectors.Assert(velocity); // TODO: remove
+
             Vector2 rollDirection = direction;
             Vector2 slideDirection = rollDirection;
             slideDirection = Vectors.Rotate(slideDirection, (float)(Math.PI / 2.0));
             float rollingVelocity = Vectors.Projection(velocity, rollDirection);
             float slidingVelocity = Vectors.Projection(velocity, slideDirection);
+
+            //MathEx.AssertFloat(rollingVelocity); // TODO: remove
+            //MathEx.AssertFloat(slidingVelocity); // TODO: remove
 
             turningAccel = Vector2.Zero;
             if (velocity.IsZero())
@@ -456,17 +466,25 @@ namespace LastAndFurious
                 }
             }
 
+            //Vectors.Assert(velocity); // TODO: remove
+
             //
             // Applying forces
             //
             Vector2 rollResDir = rollDirection;
             // TODO: find simplier way to get correct vector direction
             rollResDir = Vector2.Multiply(rollResDir, -rollingVelocity);
+            //Vectors.Assert(rollResDir); // TODO: remove
+            //Vector2 oldResDir = rollResDir;
             rollResDir = Vectors.SafeNormalize(rollResDir);
+            //Vectors.Assert(rollResDir); // TODO: remove
+
             Vector2 slideResDir = slideDirection;
             // TODO: find simplier way to get correct vector direction
             slideResDir = Vector2.Multiply(slideResDir, -slidingVelocity);
+            //Vectors.Assert(slideResDir); // TODO: remove
             slideResDir = Vectors.SafeNormalize(slideResDir);
+            //Vectors.Assert(slideResDir); // TODO: remove
 
             // Set drive force
             float driveForce = (driveWheelForce * deltaTime) / bodyMass;
@@ -503,12 +521,18 @@ namespace LastAndFurious
             //
             // First goes drive thrust
             velocity = Vectors.AddScaled(velocity, rollDirection, driveForce);
+
+            //Vectors.Assert(velocity); // TODO: remove
+
             // Then we apply friction... and making sure it does not push object to the opposite direction;
             // we have to do this, because floating point calculations are never precise!
             float x1 = velocity.X;
             float y1 = velocity.Y;
             velocity = Vectors.AddScaled(velocity, slideResDir, slideAF);
             velocity = Vectors.AddScaled(velocity, rollResDir, rollAF);
+
+            //Vectors.Assert(velocity); // TODO: remove
+
             float x2 = velocity.X;
             float y2 = velocity.Y;
             if (x1 >= 0.0 && x2 < 0.0 || x1 <= 0.0 && x2 > 0.0)
@@ -517,6 +541,8 @@ namespace LastAndFurious
                 velocity.Y = 0.0F;
             // Apply turning acceleration
             velocity = Vectors.AddScaled(velocity, turningAccel, deltaTime);
+
+            //Vectors.Assert(velocity); // TODO: remove
 
             //
             // Run collisions.
@@ -529,6 +555,8 @@ namespace LastAndFurious
             velocity = Vector2.Add(velocity, impactVelocity);
             // save impact forces for external reading
             infoImpact = impactVelocity;
+
+            //Vectors.Assert(velocity); // TODO: remove
         }
 
         protected Vector2? detectCollision(Vector2[] rect, Vector2 otherVelocity, int otherIndex)

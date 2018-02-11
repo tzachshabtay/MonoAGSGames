@@ -199,10 +199,11 @@ namespace LastAndFurious
             if (_object == null || Position == null)
                 return;
 
-            _object.X = position.X;
-            _object.Y = position.Y;
+            _object.X = (float)Math.Round(position.X);
+            _object.Y = (float)Math.Round(position.Y);
 
             float angle = MathHelper.RadiansToDegrees(direction.Angle());
+            angle = (float)Math.Round(angle);
             angle = angle - CarModelAngle;
             angle = MathEx.Angle360(angle);
             _object.Angle = angle;
@@ -211,7 +212,7 @@ namespace LastAndFurious
         protected void updateBody()
         {
             // update collision points with the new position and direction
-            for (int i = 0; i < NUM_COLLISION_POINTS; i++)
+            for (int i = 0; i < NUM_COLLISION_POINTS; ++i)
             {
                 Vector2 cp = collPointOff[i];
                 cp = Vectors.Rotate(cp, direction.Angle());

@@ -6,6 +6,23 @@ namespace LastAndFurious
     public static class MathEx
     {
         /// <summary>
+        /// Tests the given float and throws an exception if it's not a valid number.
+        /// </summary>
+        /// <param name="f"></param>
+        public static void AssertFloat(float f)
+        {
+            try
+            {
+                if (float.IsInfinity(f) || float.IsNaN(f))
+                    throw new OverflowException("Given float is not a valid number.");
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        /// <summary>
         /// Converts angle to the range of 0-359 degrees
         /// </summary>
         /// <param name="degrees"></param>
