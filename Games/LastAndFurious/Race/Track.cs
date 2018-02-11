@@ -7,6 +7,8 @@ namespace LastAndFurious
     /// </summary>
     public class TrackRegion
     {
+        private float _terraGrip;
+
         /// <summary>
         /// Region's unique identifier
         /// </summary>
@@ -27,7 +29,7 @@ namespace LastAndFurious
         /// the wheels into surface, and pushing the car. 
         /// TODO: in theory the grip should somehow be connected with friction, but I'd leave it separated
         /// for now, for the sake of simplicity (we lack proper formulas to make it work well).
-        public float TerraGrip { get; set; }
+        public float TerraGrip { get => _terraGrip; set => _terraGrip = MathHelper.Clamp(value, 0.0F, 1.0F); }
         /// Get/set additional enviroment resistance factor.
         /// This is an abstract force applied to an object moving in the unusual area: water streams, sand dunes,
         /// shrubbery, and so forth.
