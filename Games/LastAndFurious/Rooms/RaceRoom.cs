@@ -353,7 +353,7 @@ namespace LastAndFurious
             if (vcfg != null)
             {
                 foreach (var car in _race.Cars)
-                    VehicleConfigurator.ApplyConfig(car.veh.Physics, vcfg);
+                    VehicleConfigurator.ApplyConfig(car.veh, vcfg);
             }
         }
     }

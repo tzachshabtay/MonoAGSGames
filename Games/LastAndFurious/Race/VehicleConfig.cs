@@ -1,4 +1,4 @@
-﻿using System;
+﻿using AGS.API;
 using IniParser;
 using IniParser.Model;
 
@@ -16,11 +16,13 @@ namespace LastAndFurious
         public float EngineMaxPower;
         public float StillTurningVelocity;
         public float DriftVelocityFactor;
+
+        public float UISteeringAngle;
     }
 
     public class VehicleConfigurator
     {
-        public static void ApplyConfig(VehiclePhysics ph, VehicleConfig cfg)
+        public static void ApplyConfig(VehicleBehavior beh, VehicleConfig cfg)
         {
             /* TODO: maybe
             if (cfg.BodyLength > 0.0)
@@ -30,6 +32,7 @@ namespace LastAndFurious
             if (cfg.DistanceBetweenAxles > 0.0)
                 ph.DistanceBetweenAxles = cfg.DistanceBetweenAxles;
             */
+            VehiclePhysics ph = beh.Physics;
             ph.BodyMass = cfg.BodyMass;
             ph.BodyAerodynamics = cfg.BodyAerodynamics;
             ph.HardImpactLossFactor = cfg.HardImpactLossFactor;
@@ -37,6 +40,8 @@ namespace LastAndFurious
             ph.EngineMaxPower = cfg.EngineMaxPower;
             ph.StillTurningVelocity = cfg.StillTurningVelocity;
             ph.DriftVelocityFactor = cfg.DriftVelocityFactor;
+            VehicleControl ui = beh.Control;
+            ui.SteeringAngle = MathHelper.DegreesToRadians(cfg.UISteeringAngle);
         }
 
         public static VehicleConfig LoadConfig(Track track, string iniFilePath)
@@ -59,6 +64,7 @@ namespace LastAndFurious
             cfg.EngineMaxPower = ini.GetFloat("car", "engineMaxPower");
             cfg.StillTurningVelocity = ini.GetFloat("car", "stillTurningVelocity");
             cfg.DriftVelocityFactor = ini.GetFloat("car", "driftVelocityFactor");
+            cfg.UISteeringAngle = ini.GetFloat("car_control", "steeringAngle");
             return cfg;
         }
     }

@@ -27,6 +27,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Race\VehicleConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleControl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehiclePhysicsBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehiclePlayerUI.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleRacer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rooms\RaceRoom.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rooms\RoomScript.cs" />

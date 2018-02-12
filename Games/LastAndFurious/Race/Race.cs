@@ -73,7 +73,7 @@ namespace LastAndFurious
             }
             else
             {
-                var ctrl = new VehicleControl(_game);
+                var ctrl = new VehiclePlayerUI(_game);
                 if (!o.AddComponent<VehicleControl>(ctrl))
                     return null;
             }
