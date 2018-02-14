@@ -69,9 +69,6 @@ namespace LastAndFurious
         // Percentage of power use (0.0 - 1.0)
         /*protected*/
         float engineAccelerator;
-        // The engine's power goal. This is the value current power is trying to achieve.
-        /*protected*/
-        float enginePowerGoal;
         // Current engine's power.
         /*protected*/
         float enginePower;
@@ -180,7 +177,6 @@ namespace LastAndFurious
 
             engineMaxPower = 200.0F;
             engineAccelerator = 0.0F;
-            enginePowerGoal = 0.0F;
             enginePower = 0.0F;
             brakePower = 0.0F;
             driveWheelTorque = 0.0F;
@@ -207,9 +203,8 @@ namespace LastAndFurious
             infoRollAntiforce = 0.0F;
             infoSlideAntiforce = 0.0F;
             infoImpact = new Vector2();
-
-            int i;
-            for (i = 0; i < NUM_COLLISION_POINTS; ++i)
+            
+            for (int i = 0; i < NUM_COLLISION_POINTS; ++i)
             {
                 oldCollPt[i] = new Vector2();
                 collPtHit[i] = -1;
@@ -309,8 +304,7 @@ namespace LastAndFurious
             // Calculate impact vectors
             Vector2 posImpact = Vector2.Zero;
             Vector2 negImpact = Vector2.Zero;
-            int i;
-            for (i = 0; i < NUM_COLLISION_POINTS; ++i)
+            for (int i = 0; i < NUM_COLLISION_POINTS; ++i)
             {
                 if (collPtHit[i] < 0)
                     continue; // point is not colliding

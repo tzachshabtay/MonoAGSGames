@@ -199,11 +199,11 @@ namespace LastAndFurious
             if (_object == null || Position == null)
                 return;
 
-            _object.X = (float)Math.Round(position.X);
-            _object.Y = (float)Math.Round(position.Y);
+            _object.X = position.X;//(float)Math.Round(position.X);
+            _object.Y = position.Y;//(float)Math.Round(position.Y);
 
             float angle = MathHelper.RadiansToDegrees(direction.Angle());
-            angle = (float)Math.Round(angle);
+            //angle = (float)Math.Round(angle);
             angle = angle - CarModelAngle;
             angle = MathEx.Angle360(angle);
             _object.Angle = angle;
