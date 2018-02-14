@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Race\RaceConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\TrackConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\TrackLoader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\Camera.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\IniGetter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\MathEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\Race.cs" />

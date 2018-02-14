@@ -13,6 +13,7 @@ namespace LastAndFurious
         private Race _race;
         private Track _track;
         // TODO: move to camera manager
+        private LastAndFurious.Camera _camera;
         private IObject _cameraTarget;
 
 
@@ -47,6 +48,9 @@ namespace LastAndFurious
             _startingGrid[3] = compatVector(1236, 273 + 12);
             _startingGrid[4] = compatVector(1268, 326 + 12);
             _startingGrid[5] = compatVector(1300, 273 + 12);
+
+            _camera = new Camera();
+            _game.State.Viewport.Camera = _camera;
 
             return _room;
         }
@@ -212,12 +216,9 @@ namespace LastAndFurious
         private void cameraTargetPlayerCar(bool snap)
         {
             _cameraTarget = _race.PlayerCar.o;
-            /* TODO:
-            Camera.TargettingAcceleration = 0.0;
-            Camera.TargetCharacter = player;
+            _camera.TargettingAcceleration = 0f;
             if (snap)
-                Camera.Snap();
-                */
+                _camera.Snap();
         }
 
         private void cameraTargetRandomAICar(bool snap)
