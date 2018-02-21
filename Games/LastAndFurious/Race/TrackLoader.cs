@@ -41,6 +41,7 @@ namespace LastAndFurious
             IImage background = await f.LoadImageAsync(assetpath + bkgpath);
             IImage mask = await f.LoadImageAsync(assetpath + maskpath);
 
+            /*
             // TODO: find out whether engine provides faster solution
             IBitmap bmp = mask.OriginalBitmap;
             int[,] regionMap = new int[bmp.Width, bmp.Height];
@@ -57,6 +58,8 @@ namespace LastAndFurious
             }
 
             return new Track(background, regionColors.Count, regionMap);
+            */
+            return new Track(background, regionColors.Count, mask.OriginalBitmap, regionColors);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using AGS.API;
+﻿using System.Collections.Generic;
+using AGS.API;
 
 namespace LastAndFurious
 {
@@ -49,6 +50,8 @@ namespace LastAndFurious
         IImage _background;
         int[,] _regionMap;
         int[] _regionMapSize;
+        IBitmap _regionMask; // TODO: replace with regionMap
+        Dictionary<Color, int> _regionColorMap;
         TrackRegion _nullRegion; // return for safety from GetRegionAt
         TrackRegion[] _regions;
 
@@ -64,9 +67,28 @@ namespace LastAndFurious
 
         public Track(IImage background, int regionCount, int[,] regionMap)
         {
-            _background = background;
+            init(background, regionCount);
+            
             _regionMap = regionMap;
             _regionMapSize = new int[2] { regionMap.GetLength(0), _regionMap.GetLength(1) };
+            
+        }
+
+        // TODO: temporary solution, remove later
+        public Track(IImage background, int regionCount, IBitmap regionMask, Dictionary<Color, int> regionColorMap)
+        {
+            init(background, regionCount);
+
+            _background = background;
+            _regionMask = regionMask;
+            _regionColorMap = regionColorMap;
+            _regionMapSize = new int[2] { _regionMask.Width, _regionMask.Height };
+        }
+
+        private void init(IImage background, int regionCount)
+        {
+            _background = background;
+
             _regions = new TrackRegion[regionCount];
             for (int i = 0; i < regionCount; ++i)
                 _regions[i] = new TrackRegion(i);
@@ -87,7 +109,20 @@ namespace LastAndFurious
             if (x < 0 || y < 0 || x >= _regionMapSize[0] || y >= _regionMapSize[1])
                 return _nullRegion;
             // TODO: safety checks and throws
-            return _regions[ _regionMap[x, y] ];
+            // TODO: remove use of regionMask and use solely regionMap
+            if (_regionMap != null)
+            {
+                return _regions[_regionMap[x, y]];
+            }
+            else
+            {
+                // NOTE: since MonoAGS has Y axis pointing up, we need to invert the lookup array's Y index
+                y = _regionMapSize[1] - y;
+                Color col = _regionMask.GetPixel(x, y);
+                int index = 0;
+                _regionColorMap.TryGetValue(col, out index);
+                return _regions[index];
+            }
         }
     }
 }
