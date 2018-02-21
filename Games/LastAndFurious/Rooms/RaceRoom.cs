@@ -92,27 +92,15 @@ namespace LastAndFurious
             if (_game.State.Paused)
                 return;
             // TODO: temp, remove/change
-            /*
             IInput input = _game.Input;
-            if (input.IsKeyDown(Key.Up))
-                _game.State.Viewport.Y += 5F;
-            if (input.IsKeyDown(Key.Down))
-                _game.State.Viewport.Y -= 5F;
-            if (input.IsKeyDown(Key.Left))
-                _game.State.Viewport.X -= 5F;
-            if (input.IsKeyDown(Key.Right))
-                _game.State.Viewport.X += 5F;
             if (input.IsKeyDown(Key.PageDown))
-                _game.State.Viewport.ScaleX = _game.State.Viewport.ScaleY = _game.State.Viewport.ScaleX - 0.1F;
+                _game.State.Viewport.ScaleX = _game.State.Viewport.ScaleY = _game.State.Viewport.ScaleX - 0.02F;
             if (input.IsKeyDown(Key.PageUp))
-                _game.State.Viewport.ScaleX = _game.State.Viewport.ScaleY = _game.State.Viewport.ScaleX + 0.1F;
+                _game.State.Viewport.ScaleX = _game.State.Viewport.ScaleY = _game.State.Viewport.ScaleX + 0.02F;
             if (input.IsKeyDown(Key.Insert))
                 _game.State.Viewport.Angle += 1F;
             if (input.IsKeyDown(Key.Delete))
                 _game.State.Viewport.Angle -= 1F;
-            if (input.IsKeyDown(Key.PageUp))
-                _game.State.Viewport.ScaleX = _game.State.Viewport.ScaleY = _game.State.Viewport.ScaleX + 0.02F;
-                */
 
             /* TODO:
             
