@@ -9,12 +9,6 @@ namespace LastAndFurious
         {
             IGame game = AGSGame.CreateEmpty();
 
-            // TODO: remove this later
-            // I do not want to increase text resolution for this game, but have to do this
-            // to prevent a bug which occurs when text resolution is 1.
-            GLText.TextResolutionFactorX = 2;
-            GLText.TextResolutionFactorY = 2;
-
             game.Events.OnLoad.Subscribe(async () =>
             {
                 setupGame(game);
@@ -26,6 +20,7 @@ namespace LastAndFurious
 
         private static void setupGame(IGame game)
         {
+            game.Factory.Resources.ResourcePacks.Add(new ResourcePack(new FileSystemResourcePack(AGSGame.Device.FileSystem), 0));
             game.State.RoomTransitions.Transition = AGSRoomTransitions.Instant();
 
             loadFonts(game);

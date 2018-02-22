@@ -39,18 +39,16 @@ namespace LastAndFurious
             }
 
             IImage background = await f.LoadImageAsync(assetpath + bkgpath);
-            IImage mask = await f.LoadImageAsync(assetpath + maskpath);
-
+            IBitmap mask = await f.LoadBitmapAsync(assetpath + maskpath);
             /*
             // TODO: find out whether engine provides faster solution
-            IBitmap bmp = mask.OriginalBitmap;
-            int[,] regionMap = new int[bmp.Width, bmp.Height];
-            for (int x = 0; x < bmp.Width; ++x)
+            int[,] regionMap = new int[mask.Width, mask.Height];
+            for (int x = 0; x < mask.Width; ++x)
             {
                 // NOTE: since MonoAGS has Y axis pointing up, we need to invert the lookup array's Y index
-                for (int y = 0, mapy = bmp.Height - 1; y < bmp.Height; ++y, --mapy)
+                for (int y = 0, mapy = mask.Height - 1; y < mask.Height; ++y, --mapy)
                 {
-                    Color col = bmp.GetPixel(x, y);
+                    Color col = mask.GetPixel(x, y);
                     int index = 0;
                     regionColors.TryGetValue(col, out index);
                     regionMap[x, mapy] = index;
@@ -59,7 +57,7 @@ namespace LastAndFurious
 
             return new Track(background, regionColors.Count, regionMap);
             */
-            return new Track(background, regionColors.Count, mask.OriginalBitmap, regionColors);
+            return new Track(background, regionColors.Count, mask, regionColors);
         }
     }
 }

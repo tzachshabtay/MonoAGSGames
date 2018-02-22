@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AGS.API;
 using AGS.Engine;
 
@@ -22,6 +21,7 @@ namespace Game
 
         private static void setupGame(IGame game)
         {
+            game.Factory.Resources.ResourcePacks.Add(new ResourcePack(new FileSystemResourcePack(AGSGame.Device.FileSystem), 0));
             game.State.RoomTransitions.Transition = AGSRoomTransitions.Instant();
         }
 
