@@ -5,8 +5,10 @@ namespace LastAndFurious
 {
     public class GameStarter
     {
-        public static void Run()
+        // TODO: proper struct to pass arguments
+        public static void Run(string asset_path)
         {
+            LF.Init(asset_path);
             IGame game = AGSGame.CreateEmpty();
 
             game.Events.OnLoad.Subscribe(async () =>

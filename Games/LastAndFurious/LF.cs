@@ -9,12 +9,32 @@ namespace LastAndFurious
     public static class LF
     {
         public const string GAME_VERSION = "v0.1.0";
-        public const string BaseAssetFolder = "../../Assets/";
-        public const string FontAssetFolder = BaseAssetFolder + "Fonts/";
-        public const string MusicAssetFolder = BaseAssetFolder + "Music/";
-        public const string ObjectAssetFolder = BaseAssetFolder + "Objects/";
-        public const string RoomAssetFolder = BaseAssetFolder + "Rooms/";
-        public const string UIAssetFolder = BaseAssetFolder + "UI/";
+
+        private static string _baseAssetFolder;
+        private static string _fontAssetFolder;
+        private static string _musicAssetFolder;
+        private static string _objectAssetFolder;
+        private static string _roomAssetFolder;
+        private static string _uiAssetFolder;
+
+        public static string BaseAssetFolder { get => _baseAssetFolder; }
+        public static string FontAssetFolder { get => _fontAssetFolder; }
+        public static string MusicAssetFolder { get => _musicAssetFolder; }
+        public static string ObjectAssetFolder { get => _objectAssetFolder; }
+        public static string RoomAssetFolder { get => _roomAssetFolder; }
+        public static string UIAssetFolder { get => _uiAssetFolder; }
+
+        public static void Init(string baseAssetPath)
+        {
+            System.Console.WriteLine("Asset path: " + baseAssetPath);
+
+            _baseAssetFolder = baseAssetPath;
+            _fontAssetFolder = _baseAssetFolder + "Fonts/";
+            _musicAssetFolder = _baseAssetFolder + "Music/";
+            _objectAssetFolder = _baseAssetFolder + "Objects/";
+            _roomAssetFolder = _baseAssetFolder + "Rooms/";
+            _uiAssetFolder = _baseAssetFolder + "UI/";
+        }
 
         public static class MagicColor
         {
