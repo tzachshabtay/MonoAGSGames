@@ -31,19 +31,9 @@ namespace LastAndFurious
         {
             if (!obj.Visible) return;
 
-            // Find drawing location
-            // TODO: should not there be a global algorithm for this??
-            IObject parent = obj.TreeNode.Parent;
-            float x = obj.X;
-            float y = obj.Y;
-            while (parent != null)
-            {
-                x += parent.X;
-                y += parent.Y;
-                parent = parent.TreeNode.Parent;
-            }
-            x -= viewport.X;
-            y -= viewport.Y;
+            var bottomLeft = obj.GetBoundingBoxes(viewport).RenderBox.BottomLeft;
+            var x = bottomLeft.X;
+            var y = bottomLeft.Y;
 
             // TODO: aligned (e.g. centered) draw
             _font.DrawText(_text, _glUtils, new Vector2(x, y));
