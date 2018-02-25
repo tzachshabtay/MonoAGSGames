@@ -9,6 +9,7 @@
     <Import_RootNamespace>LastAndFurious</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Race\AIController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\DriverCharacter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameMenuComponent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LF.cs" />
@@ -24,7 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Race\Track.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Utils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Vectors.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleAI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleAIRegionBased.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\VehicleConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleControl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehiclePhysicsBase.cs" />

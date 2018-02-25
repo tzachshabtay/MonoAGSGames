@@ -21,8 +21,7 @@ namespace LastAndFurious
             base.Init(entity);
             Racer = entity.AddComponent<VehicleRacer>();
             Physics = entity.AddComponent<VehiclePhysics>();
-            entity.Bind<VehiclePlayerUI>(c => Control = c, _ => Control = null);
-            entity.Bind<VehicleAI>(c => Control = c, _ => Control = null);
+            entity.Bind<VehicleControl>(c => Control = c, _ => Control = null);
         }
     }
 }

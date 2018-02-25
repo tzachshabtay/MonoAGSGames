@@ -57,7 +57,47 @@ namespace LastAndFurious
 
             return new Track(background, regionColors.Count, regionMap);
             */
-            return new Track(background, regionColors.Count, mask, regionColors);
+            TrackAIData aiData = await LoadAIData(assetpath, f);
+            return new Track(background, regionColors.Count, mask, regionColors, aiData);
+        }
+
+        private static async Task<TrackAIData> LoadAIData(string assetpath, IGraphicsFactory f)
+        {
+            TrackAIData data = new TrackAIData();
+            await LoadAIRegionsData(data, assetpath, f);
+            return data;
+        }
+
+        private static async Task LoadAIRegionsData(TrackAIData data, string assetpath, IGraphicsFactory f)
+        {
+            IBitmap regionMask = await f.LoadBitmapAsync(assetpath + "airegions.bmp");
+            if (regionMask == null)
+                return;
+
+            FileIniDataParser file = new FileIniDataParser();
+            file.Parser.Configuration.CommentString = "//";
+            IniData inidata = file.ReadFile(assetpath + "airegions.ini");
+            if (inidata == null)
+                return;
+
+            IniGetter ini = new IniGetter(inidata);
+            Dictionary<Color, float> regionAngles = new Dictionary<Color, float>();
+            int regions = ini.GetInt("ai", "regions");
+            for (int i = 0; i < regions; ++i)
+            {
+                string secname = string.Format("region{0}", i);
+                if (!inidata.Sections.ContainsSection(secname))
+                    continue;
+                Color col = Color.FromArgb(255,
+                    (byte)ini.GetInt(secname, "color_r"),
+                    (byte)ini.GetInt(secname, "color_g"),
+                    (byte)ini.GetInt(secname, "color_b"));
+                regionAngles[col] = MathUtils.DegreesToRadians(ini.GetFloat(secname, "angle"));
+            }
+
+            data.AIRegionMask = regionMask;
+            data.AIRegionAngles = regionAngles;
+            return;
         }
     }
 }
