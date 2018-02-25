@@ -41,11 +41,19 @@ namespace LastAndFurious
         /// <summary>
         /// Vehicle position.
         /// </summary>
-        public Vector2 Position { get => position; }
+        public Vector2 Position
+        {
+            get { return position; }
+            set { position = value; syncObject(); }
+        }
         /// <summary>
         /// Vehicle face direction.
         /// </summary>
-        public Vector2 Direction { get => direction; }
+        public Vector2 Direction
+        {
+            get { return direction; }
+            set { direction = value; syncObject(); }
+        }
         /// <summary>
         /// Final linear velocity, summing up all the forces
         /// </summary>
@@ -160,6 +168,7 @@ namespace LastAndFurious
 
         protected void repExec()
         {
+            // TODO: get delta time from one API, using more precise calculation
             float delta_time = (float)(1.0 / AGSGame.UPDATE_RATE);
             Run(delta_time);
         }

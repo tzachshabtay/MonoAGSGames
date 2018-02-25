@@ -43,5 +43,21 @@ namespace LastAndFurious
                 return (float)(rads + Math.PI * 2.0);
             return rads;
         }
+
+        // Converts angle to the range of [0..2Pi)
+        public static float Angle2Pi(float rads)
+        {
+            const float pi2 = (float)Math.PI * 2.0f;
+            // TODO: needs more testing
+            float angle;
+            if (rads >= 0.0f)
+                angle = rads - pi2 * (float)Math.Floor(rads / pi2);
+            else
+                angle = rads - pi2 * (float)Math.Ceiling(rads / pi2);
+            if (angle >= 0.0f)
+                return angle;
+            return pi2 - (-angle);
+        }
+
     }
 }

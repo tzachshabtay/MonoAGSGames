@@ -139,6 +139,8 @@ namespace LastAndFurious
         /*protected*/
         float envResistance;
 
+        public bool StrictCollisions { get => strictCollisions; set => strictCollisions = value; }
+
         bool strictCollisions;
         // Parameters telling if particular point is colliding with an obstacle (stores area ID)
         /*protected*/

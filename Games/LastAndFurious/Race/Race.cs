@@ -3,6 +3,18 @@ using AGS.API;
 
 namespace LastAndFurious
 {
+    public struct VehicleObject
+    {
+        public VehicleBehavior Veh;
+        public IObject O;
+
+        public VehicleObject(VehicleBehavior veh, IObject o)
+        {
+            Veh = veh;
+            O = o;
+        }
+    }
+
     public class Race
     {
         public const int MAX_RACING_CARS = 6;
@@ -11,7 +23,7 @@ namespace LastAndFurious
         IRoom _room;
         Track _track;
         // TODO: was not sure what is the best way to keep custom component field exposed
-        List<(VehicleBehavior veh, IObject o)> _cars = new List<(VehicleBehavior, IObject)>();
+        List<VehicleObject> _cars = new List<VehicleObject>();
 
         // TODO:
         // AiAndPhysicsOption AiAndPhysics;
@@ -36,8 +48,8 @@ namespace LastAndFurious
         /// </summary>
         public int Opponents { get; set; }
 
-        public (VehicleBehavior veh, IObject o) PlayerCar { get; private set; }
-        public IList<(VehicleBehavior veh, IObject o)> Cars { get => _cars; }
+        public VehicleObject PlayerCar { get; set; }
+        public IList<VehicleObject> Cars { get => _cars; }
 
 
         public Race(IGame game, IRoom room, Track track)
@@ -50,7 +62,7 @@ namespace LastAndFurious
         public void Clear()
         {
             foreach (var c in _cars)
-                _room.Objects.Remove(c.o);
+                _room.Objects.Remove(c.O);
             _cars.Clear();
 
             /*
@@ -59,34 +71,22 @@ namespace LastAndFurious
             */
         }
 
-        public VehicleBehavior AddRacingCar(DriverCharacter c, bool ai)
+        public VehicleObject AddRacingCar(DriverCharacter c, VehicleControl control = null)
         {
             IObject o = _game.Factory.Object.GetObject(c.Name + "_car");
             VehicleBehavior beh = new VehicleBehavior();
             if (!o.AddComponent<VehicleBehavior>(beh))
-                return null;
-            if (ai)
-            {
-                var aiCtrl = new VehicleAI(_game);
-                if (!o.AddComponent<VehicleAI>(aiCtrl))
-                    return null;
-            }
-            else
-            {
-                var ctrl = new VehiclePlayerUI(_game);
-                if (!o.AddComponent<VehicleControl>(ctrl))
-                    return null;
-            }
+                return new VehicleObject();
+            if (control != null)
+                o.AddComponent<VehicleControl>(control);
 
             beh.Racer.Driver = c;
             beh.Physics.AttachCarModel(c.CarModel, c.CarModelAngle);
             o.Image = c.CarModel;
             o.Pivot = new PointF(0.5F, 0.5F);
-            _cars.Add((beh, o));
-            if (!ai)
-                PlayerCar = (beh, o);
+            _cars.Add(new VehicleObject(beh, o));
             _room.Objects.Add(o);
-            return beh;
+            return new VehicleObject(beh, o);
         }
     }
 }

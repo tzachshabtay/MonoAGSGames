@@ -12,6 +12,10 @@ namespace LastAndFurious
         private Vector2[] _startingGrid; // TODO: move to Track config
         private Race _race;
         private Track _track;
+        // Current AI controller
+        private AIController _ai;
+        // Supported ai controller types
+        private AIRegionBased _aiRegionBased;
         // TODO: move to camera manager
         private LastAndFurious.Camera _camera;
         private IObject _cameraTarget;
@@ -21,8 +25,21 @@ namespace LastAndFurious
         {
         }
 
+        protected void clearRoom()
+        {
+            _race = null;
+            _track = null;
+            _startingGrid = null;
+            _aiRegionBased = null;
+            _ai = null;
+            _camera = null;
+            _cameraTarget = null;
+        }
+
         protected override async Task<IRoom> loadAsync()
         {
+            clearRoom();
+
             IGameFactory factory = _game.Factory;
             _room = factory.Room.GetRoom(ROOM_ID);
             _room.RoomLimitsProvider = AGSRoomLimits.FromBackground;
@@ -48,6 +65,10 @@ namespace LastAndFurious
             _startingGrid[3] = compatVector(1236, 273 + 12);
             _startingGrid[4] = compatVector(1268, 326 + 12);
             _startingGrid[5] = compatVector(1300, 273 + 12);
+
+            // Create Ai controllers supported by this track
+            if (_track.AiData.AIRegionMask != null && _track.AiData.AIRegionAngles != null)
+                _aiRegionBased = new AIRegionBased(_game, _track.AiData.AIRegionMask, _track.AiData.AIRegionAngles);
 
             _camera = new Camera();
             _game.State.Viewport.Camera = _camera;
@@ -192,18 +213,19 @@ namespace LastAndFurious
             */
         }
 
-        private void positionCarOnGrid(VehicleBehavior car, int gridpos)
+        private void positionCarOnGrid(VehicleObject car, int gridpos)
         {
             // TODO: checkme, I do not remember why it needed all this adjustment
+            var ph = car.Veh.Physics;
             Vector2 pos = _startingGrid[gridpos];
-            pos.X += 4 + car.Physics.BodyLength / 2;
+            pos.X += 4 + ph.BodyLength / 2;
             pos.Y += 1;
-            car.Physics.Reset(_track, pos, new Vector2(-1, 0));
+            ph.Reset(_track, pos, new Vector2(-1, 0));
         }
 
         private void cameraTargetPlayerCar(bool snap)
         {
-            _cameraTarget = _race.PlayerCar.o;
+            _cameraTarget = _race.PlayerCar.O;
             _camera.TargettingAcceleration = 0f;
             if (snap)
                 _camera.Snap();
@@ -211,7 +233,7 @@ namespace LastAndFurious
 
         private void cameraTargetRandomAICar(bool snap)
         {
-            _cameraTarget = _race.PlayerCar.o;
+            _cameraTarget = _race.PlayerCar.O;
             /* TODO:
             Camera.TargettingAcceleration = 0.5;
             Camera.TargetCharacter = character[cAICar1.ID + Random(5)];
@@ -235,24 +257,21 @@ namespace LastAndFurious
             LF.RaceAssets.Drivers.Values.CopyTo(drivers, 0);
             Utils.Shuffle(drivers, new System.Random());
 
+            // Switch to the desired AI type
+            if (_aiRegionBased != null)
+                _ai = _aiRegionBased;
             for (int i = 0; i < drivers.Length; ++i)
             {
-                var car = _race.AddRacingCar(drivers[i], false);
+                var car = _race.AddRacingCar(drivers[i], _ai.GetVehicleAI());
                 positionCarOnGrid(car, i);
             }
 
             readRaceConfig();
 
             /*
-            LoadAI();
             LoadRaceCheckpoints();
 
             PlayersCarIndex = -1;
-            for (i = 0; i < MAX_RACING_CARS; i++)
-            {
-                AssignAIToCar(i);
-                Racers[i].Activate(drivers[i]);
-            }
             */
 
             _game.State.Viewport.Camera.Target = getCameraTarget;
@@ -278,35 +297,38 @@ namespace LastAndFurious
             _race.PlayerDriver = driver;
 
             // TODO: ThisRace.Opponents
-
-            /*
+            
             DriverCharacter[] drivers = new DriverCharacter[LF.RaceAssets.Drivers.Count];
             LF.RaceAssets.Drivers.Values.CopyTo(drivers, 0);
             Utils.Shuffle(drivers, new System.Random());
 
+            // Switch to the desired AI type
+            if (_aiRegionBased != null)
+                _ai = _aiRegionBased;
             for (int i = 0; i < drivers.Length; ++i)
             {
-                var car = _race.AddRacingCar(drivers[i], drivers[i] == _race.PlayerDriver);
+                _ai.GetVehicleAI();
+                VehicleObject car;
+                if (drivers[i] == _race.PlayerDriver)
+                {
+                    car = _race.AddRacingCar(drivers[i], new VehiclePlayerUI(_game));
+                    car.Veh.Physics.StrictCollisions = true;
+                    _race.PlayerCar = car;
+                }
+                else
+                {
+                    car = _race.AddRacingCar(drivers[i], _ai.GetVehicleAI());
+                }
                 positionCarOnGrid(car, i);
             }
-            */
-
-            var car = _race.AddRacingCar(_race.PlayerDriver, false);
-            positionCarOnGrid(car, 0);
+            
             
             readRaceConfig();
+
             /*
-            LoadAI();
             LoadRaceCheckpoints();
 
             PlayersCarIndex = 0;
-            Cars[0].strictCollisions = true;
-            Racers[0].Activate(ThisRace.PlayerDriver);
-            for (i = 0; i < ThisRace.Opponents; i++)
-            {
-                AssignAIToCar(i + 1);
-                Racers[i + 1].Activate(drivers[i]);
-            }
             */
 
             _game.State.Viewport.Camera.Target = getCameraTarget;
@@ -342,7 +364,7 @@ namespace LastAndFurious
             if (vcfg != null)
             {
                 foreach (var car in _race.Cars)
-                    VehicleConfigurator.ApplyConfig(car.veh, vcfg);
+                    VehicleConfigurator.ApplyConfig(car.Veh, vcfg);
             }
         }
     }

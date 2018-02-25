@@ -43,6 +43,15 @@ namespace LastAndFurious
     }
 
     /// <summary>
+    /// Describes AI data available for the racing track.
+    /// </summary>
+    public class TrackAIData
+    {
+        public IBitmap AIRegionMask { get; set; }
+        public Dictionary<Color, float> AIRegionAngles { get; set; }
+    }
+
+    /// <summary>
     /// Describes the racing track and its properties.
     /// </summary>
     public class Track
@@ -55,8 +64,13 @@ namespace LastAndFurious
         TrackRegion _nullRegion; // return for safety from GetRegionAt
         TrackRegion[] _regions;
 
+        // Supported AI data
+        TrackAIData _aiData;
+
+
         public IImage Background { get => _background; }
         public TrackRegion[] Regions { get => _regions; }
+        public TrackAIData AiData { get => _aiData; }
 
         /// Get/set track's gravity (default is 9.807)
         public float Gravity { get; set; }
@@ -65,19 +79,18 @@ namespace LastAndFurious
         public float AirResistance { get; set; }
         
 
-        public Track(IImage background, int regionCount, int[,] regionMap)
+        public Track(IImage background, int regionCount, int[,] regionMap, TrackAIData aiData)
         {
-            init(background, regionCount);
+            init(background, regionCount, aiData);
             
             _regionMap = regionMap;
             _regionMapSize = new int[2] { regionMap.GetLength(0), _regionMap.GetLength(1) };
-            
         }
 
         // TODO: temporary solution, remove later
-        public Track(IImage background, int regionCount, IBitmap regionMask, Dictionary<Color, int> regionColorMap)
+        public Track(IImage background, int regionCount, IBitmap regionMask, Dictionary<Color, int> regionColorMap, TrackAIData aiData)
         {
-            init(background, regionCount);
+            init(background, regionCount, aiData);
 
             _background = background;
             _regionMask = regionMask;
@@ -85,7 +98,7 @@ namespace LastAndFurious
             _regionMapSize = new int[2] { _regionMask.Width, _regionMask.Height };
         }
 
-        private void init(IImage background, int regionCount)
+        private void init(IImage background, int regionCount, TrackAIData aiData)
         {
             _background = background;
 
@@ -96,6 +109,8 @@ namespace LastAndFurious
 
             Gravity = 9.807F;
             AirResistance = 0.01F;
+
+            _aiData = aiData;
         }
 
         /// <summary>
