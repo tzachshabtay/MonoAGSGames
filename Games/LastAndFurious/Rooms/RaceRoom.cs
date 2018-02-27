@@ -20,6 +20,8 @@ namespace LastAndFurious
         private LastAndFurious.Camera _camera;
         private IObject _cameraTarget;
 
+        private bool _isAIRace;
+
 
         public RaceRoom(IGame game) : base(game, ROOM_ID)
         {
@@ -87,7 +89,7 @@ namespace LastAndFurious
             //setupAIRace();
             setupSinglePlayerRace();
 
-            //_music.Play(true);
+            _music.Play(true);
         }
 
         private void onAfterFadeIn()
@@ -110,7 +112,7 @@ namespace LastAndFurious
 
         private void repExec()
         {
-            if (_game.State.Paused)
+            if (LF.GameState.Paused)
                 return;
             // TODO: temp, remove/change
             IInput input = _game.Input;
@@ -172,19 +174,18 @@ namespace LastAndFurious
 
         private void onKeyDown(KeyboardEventArgs args)
         {
-            /*
-            if (IsGamePaused())
+            if (LF.GameState.Paused)
                 return;
 
-            if (!gGameMenu.Visible && (IsAIRace || key == eKeyEscape))
+            if (_isAIRace || args.Key == Key.Escape)
             {
-                if (IsAIRace)
-                    DisplayGameMenu(eMenuMain, false);
+                if (_isAIRace)
+                    GameMenu.ShowMenu(MenuClass.eMenuMain, false);
                 else
-                    DisplayGameMenu(eMenuMainInGame, true);
-                ClaimEvent();
+                    GameMenu.ShowMenu(MenuClass.eMenuMainInGame, true);
+
+                // ClaimEvent();
             }
-            */
         }
 
         private void clearRace()
@@ -270,15 +271,13 @@ namespace LastAndFurious
 
             /*
             LoadRaceCheckpoints();
-
-            PlayersCarIndex = -1;
             */
 
             _game.State.Viewport.Camera.Target = getCameraTarget;
             cameraTargetRandomAICar(true);
 
+            _isAIRace = true;
             /*
-            IsAIRace = true;
             RaceStartSequence = 0;
             RaceEndSequence = 0;
             Timer.StopIt(tSequence);
@@ -327,15 +326,13 @@ namespace LastAndFurious
 
             /*
             LoadRaceCheckpoints();
-
-            PlayersCarIndex = 0;
             */
 
             _game.State.Viewport.Camera.Target = getCameraTarget;
             cameraTargetPlayerCar(true);
 
+            _isAIRace = false;
             /*
-            IsAIRace = false;
             RaceStartSequence = 0;
             RaceEndSequence = 0;
             Timer.StopIt(tSequence);

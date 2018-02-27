@@ -8,6 +8,8 @@ namespace LastAndFurious
     /// <summary>
     /// Describes a single item of a game menu
     /// </summary>
+    /// TODO: make MenuItem a component
+    /// TODO: a proper menu item tree structure, with functions to add/remove subitems
     public class MenuItem
     {
         /// <summary>
@@ -28,6 +30,8 @@ namespace LastAndFurious
         /// </summary>
         public IEvent OnScrollRight { get; private set; }
 
+        public IObject SubItem { get; set; }
+
         public MenuItem(string text, Action onConfirm = null, Action onScrollLeft = null, Action onScrollRight = null)
         {
             Text = text;
@@ -41,6 +45,20 @@ namespace LastAndFurious
         }
     }
 
+    // TODO: review this
+    // probably make MenuItem an entity's behavior component
+    public struct MenuObject
+    {
+        public MenuItem Item { get; set; }
+        public IObject Label { get; set; }
+
+        public MenuObject(MenuItem item, IObject label)
+        {
+            Item = item;
+            Label = label;
+        }
+    }
+
     /// <summary>
     /// Component that describes on-screen menu. Menu options are depicted by labels,
     /// and there is a sprite that indicates player selection.
@@ -50,12 +68,14 @@ namespace LastAndFurious
     {
         private IGame _game;
         private IInObjectTreeComponent _tree;
+        private IDrawableInfoComponent _drawable;
         private readonly IGLUtils _glUtils;
         private IVisibleComponent _visible;
 
         // TODO: use Binding List and expose Items in class API?
         // TODO: use actual labels when custom or bitmap fonts are supported
-        private List<(IObject label, MenuItem item)> _items = new List<(IObject label, MenuItem item)>();
+        // TODO: a proper menu item tree, where an item may have subitems to display values
+        private List<MenuObject> _items = new List<MenuObject>();
         private IObject _selector;
 
         private int _selection;
@@ -70,9 +90,13 @@ namespace LastAndFurious
         /// </summary>
         public int OptionSpacing { get; set; }
         /// <summary>
+        /// Get/set the relative option value position
+        /// </summary>
+        public int OptionValueX { get; set; }
+        /// <summary>
         /// Get/set the image used as a menu option selector
         /// </summary>
-        public IImage SelectorGraphic { get { return _selector.Image; } set { _selector.Image = value; } }
+        public IImage SelectorGraphic { get => _selector.Image; set => _selector.Image = value; }
         /// <summary>
         /// Get/set the relative selector position
         /// </summary>
@@ -117,7 +141,8 @@ namespace LastAndFurious
         public override void Init(IEntity entity)
         {
             base.Init(entity);
-            entity.Bind<IInObjectTreeComponent>(c => { _tree = c; _tree.TreeNode.AddChild(_selector); }, _ => _tree = null);
+            entity.Bind<IInObjectTreeComponent>(c => { _tree = c; _tree.TreeNode.AddChild(_selector); _selector.Z = 1; }, _ => _tree = null);
+            entity.Bind<IDrawableInfoComponent>(c => { _drawable = c; _selector.RenderLayer = _drawable.RenderLayer; _selector.IgnoreViewport = true; }, _ => _drawable = null);
             entity.Bind<IVisibleComponent>(c => _visible = c, _ => _visible = null);
         }
 
@@ -138,17 +163,52 @@ namespace LastAndFurious
         public void AddItem(string text, Action onConfirm = null, Action onScrollLeft = null, Action onScrollRight = null)
         {
             MenuItem item = new MenuItem(text, onConfirm, onScrollLeft, onScrollRight);
-            IObject label = _game.Factory.Object.GetObject(string.Format("GameMenuItem{0}", _items.Count));
-            _items.Add((label, item));
-            _game.State.UI.Add(label);
-            _tree?.TreeNode.AddChild(label);
-
-            label.CustomRenderer = CreateItemImage(text);
-            //label.DebugDrawPivot = true;
-            label.Y = _items.Count * -OptionSpacing;
+            float y = _items.Count * -OptionSpacing;
+            IObject label = setupItem(string.Format("GameMenuItem{0}", _items.Count), text, 0f, y);
+            _items.Add(new MenuObject(item, label));
 
             if (Selection < 0)
                 Selection = 0;
+        }
+
+        private IObject setupItem(string id, string text, float x, float y)
+        {
+            IObject label = _game.Factory.Object.GetObject(id);
+            _game.State.UI.Add(label);
+            _tree?.TreeNode.AddChild(label);
+            if (_drawable != null)
+            {
+                label.RenderLayer = _drawable.RenderLayer;
+                label.IgnoreViewport = true;
+            }
+            
+            //label.DebugDrawPivot = true;
+            label.X = x;
+            label.Y = y;
+            label.Z = -2;
+            var image = CreateItemImage(text);
+            label.CustomRenderer = image;
+            return label;
+        }
+
+        /// <summary>
+        /// Adds a subitem for the item, displayed to the right of its parent.
+        /// </summary>
+        /// <param name="itemIndex">A zero-based index of the parent item</param>
+        /// <param name="text">Subitem's text</param>
+        public void SetSubItem(int itemIndex, string text)
+        {
+            var item = _items[itemIndex];
+            if (item.Item.SubItem == null)
+            {
+                IObject label = setupItem(string.Format("GameMenuItem{0}_subitem", itemIndex), text, OptionValueX, item.Label.Y);
+                item.Item.SubItem = label;
+            }
+            else
+            {
+                var image = CreateItemImage(text);
+                item.Item.SubItem.CustomRenderer = image;
+            }
         }
 
         /// <summary>
@@ -157,10 +217,18 @@ namespace LastAndFurious
         public void ClearItems()
         {
             foreach (var tuple in _items)
-                _game.State.UI.Remove(tuple.label);
+            {
+                _game.State.UI.Remove(tuple.Label);
+                if (tuple.Item.SubItem != null)
+                    _game.State.UI.Remove(tuple.Item.SubItem);
+            }
             if (_tree != null)
                 foreach (var tuple in _items)
-                    _tree.TreeNode.RemoveChild(tuple.label);
+                {
+                    _tree.TreeNode.RemoveChild(tuple.Label);
+                    if (tuple.Item.SubItem != null)
+                        _tree.TreeNode.RemoveChild(tuple.Item.SubItem);
+                }
             _items.Clear();
 
             Selection = -1;
@@ -170,21 +238,21 @@ namespace LastAndFurious
         {
             if (_selection < 0)
                 return;
-            _items[_selection].item.OnConfirm.InvokeAsync(); // TODO: check if should be blocking
+            _items[_selection].Item.OnConfirm.InvokeAsync(); // TODO: check if should be blocking
         }
 
         public void ScrollLeft()
         {
             if (_selection < 0)
                 return;
-            _items[_selection].item.OnScrollLeft.InvokeAsync(); // TODO: check if should be blocking
+            _items[_selection].Item.OnScrollLeft.InvokeAsync(); // TODO: check if should be blocking
         }
 
         public void ScrollRight()
         {
             if (_selection < 0)
                 return;
-            _items[_selection].item.OnScrollRight.InvokeAsync(); // TODO: check if should be blocking
+            _items[_selection].Item.OnScrollRight.InvokeAsync(); // TODO: check if should be blocking
         }
 
         private IImageRenderer CreateItemImage(string text)

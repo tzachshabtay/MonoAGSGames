@@ -51,6 +51,12 @@ namespace LastAndFurious
             public static IImage Selector;
         }
 
+        public static class RaceMenu
+        {
+            public static IImage Selector;
+            public static IImage VBar;
+        }
+
         public static class Rooms
         {
             public static List<RoomScript> AllRooms = new List<RoomScript>();
@@ -84,6 +90,13 @@ namespace LastAndFurious
                     Drivers.Add(name, new DriverCharacter(name, null, carmodel, 90.0F));
                 }
             }
+        }
+
+        // TODO: had to do this, because engine's GameState.Paused blocks literally all update,
+        // including input events.
+        public static class GameState
+        {
+            public static bool Paused { get; set; }
         }
     }
 }
