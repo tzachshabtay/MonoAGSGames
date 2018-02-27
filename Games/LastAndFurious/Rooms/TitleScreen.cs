@@ -51,7 +51,7 @@ namespace LastAndFurious
         {
             // TODO: stop all sounds
 
-            GameMenu.ShowMenu(_game, MenuClass.eMenuStart);
+            GameMenu.ShowMenu(MenuClass.eMenuStart);
         }
 
         private void onAfterFadeIn()

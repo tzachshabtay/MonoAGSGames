@@ -3,6 +3,9 @@ using AGS.API;
 
 namespace LastAndFurious
 {
+    // TODO: find a better (stricter) way to connect these two together
+    // A dictionary mapping object to VehicleBehavior perhaps?
+    // NOTE: we need IObject reference, because Room is storing list of IObjects, not entities
     public struct VehicleObject
     {
         public VehicleBehavior Veh;

@@ -10,7 +10,7 @@ namespace LastAndFurious
 
         protected override void repExec()
         {
-            if (_game.State.Paused)
+            if (LF.GameState.Paused)
                 return;
 
             // TODO: configure keys

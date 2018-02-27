@@ -168,6 +168,8 @@ namespace LastAndFurious
 
         protected void repExec()
         {
+            if (LF.GameState.Paused)
+                return;
             // TODO: get delta time from one API, using more precise calculation
             float delta_time = (float)(1.0 / AGSGame.UPDATE_RATE);
             Run(delta_time);

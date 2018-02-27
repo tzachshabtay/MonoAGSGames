@@ -33,7 +33,7 @@ namespace LastAndFurious
 
             var bottomLeft = obj.GetBoundingBoxes(viewport).RenderBox.BottomLeft;
             var x = bottomLeft.X;
-            var y = bottomLeft.Y;
+            var y = bottomLeft.Y - _size.Height;
 
             // TODO: aligned (e.g. centered) draw
             _font.DrawText(_text, _glUtils, new Vector2(x, y));
