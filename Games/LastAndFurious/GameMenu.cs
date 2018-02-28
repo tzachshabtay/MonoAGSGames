@@ -15,6 +15,26 @@ namespace LastAndFurious
         eMenuCredits
     };
 
+    public enum RacePhysicsMode
+    {
+        Safe,
+        Wild
+    }
+
+    public struct GameConfig
+    {
+        public int MusicVolume;
+    }
+
+    public struct RaceEventConfig
+    {
+        public int PlayerDriver;
+        public int Opponents;
+        public int Laps;
+        public RacePhysicsMode Physics;
+        public bool CarCollisions;
+    }
+
     // TODO: remake into non-static class
     public static class GameMenu
     {
@@ -37,13 +57,16 @@ namespace LastAndFurious
         private static IPanel _underlay = null;
 
         // TODO: move to game config controller, or something
-        private static int _musicVolume;
+        private static GameConfig _gameCfg;
+        private static RaceEventConfig _raceCfg;
 
         public static bool IsShown { get => _menuObject != null && _menuObject.Visible; }
         
         public static void Init(IGame game)
         {
             _game = game;
+            _gameCfg = new GameConfig();
+            _raceCfg = new RaceEventConfig();
             SetConfigToDefault();
         }
 
@@ -57,13 +80,12 @@ namespace LastAndFurious
 # ifndef DEBUG
                 IsDebugMode = false;
 #endif
-
-                ThisRace.PlayerDriver = 0;
-                ThisRace.Laps = 3;
-                ThisRace.Opponents = 3;
-                ThisRace.AiAndPhysics = ePhysicsSafe;
-                ThisRace.CarCollisions = true;
-                */
+*/
+            _raceCfg.PlayerDriver = 0;
+            _raceCfg.Laps = 3;
+            _raceCfg.Opponents = 3;
+            _raceCfg.Physics = RacePhysicsMode.Safe;
+            _raceCfg.CarCollisions = true;
         }
 
         public static void ShowMenu(MenuClass menuClass, bool pausedInGame = false)
@@ -111,6 +133,7 @@ namespace LastAndFurious
             _menu.ClearItems();
             _menuObject.Visible = false;
             _menuClass = MenuClass.eMenuNone;
+            _prevMenuClass = MenuClass.eMenuNone;
 
             if (LF.GameState.Paused)
             {
@@ -223,11 +246,11 @@ namespace LastAndFurious
                     break;
                 case MenuClass.eMenuSetupRace:
                     _menu.AddItem("Go!", onGo);
-                    _menu.AddItem("Driver");
-                    _menu.AddItem("Laps");
-                    _menu.AddItem("Opponents");
-                    _menu.AddItem("Physics");
-                    _menu.AddItem("Collisions");
+                    _menu.AddItem("Driver", ()=> changeDriver(true), () => changeDriver(false), () => changeDriver(true));
+                    _menu.AddItem("Laps", () => changeLaps(true), () => changeLaps(false), () => changeLaps(true));
+                    _menu.AddItem("Opponents", () => changeOpponents(true), () => changeOpponents(false), () => changeOpponents(true));
+                    _menu.AddItem("Physics", changePhysics, changePhysics, changePhysics);
+                    _menu.AddItem("Collisions", changeCollisions, changeCollisions, changeCollisions);
                     _menu.AddItem("Back", ()=> { switchToMenu(_prevMenuClass); });
                     break;
             }
@@ -290,69 +313,67 @@ namespace LastAndFurious
 
         private static void updateOptionValues()
         {
-            string value;
             switch (_menuClass)
             {
                 case MenuClass.eMenuMain:
                 case MenuClass.eMenuMainInGame:
-                    if (_musicVolume == 0)
-                        value = " OFF >";
-                    else if (_musicVolume == 100)
-                        value = "< FULL";
-                    else
-                        value = String.Format("< {0,0:D2} >", _musicVolume);
-                    _menu.SetSubItem(2, value);
+                    {
+                        string value;
+                        if (_gameCfg.MusicVolume == 0)
+                            value = " OFF >";
+                        else if (_gameCfg.MusicVolume == 100)
+                            value = "< FULL";
+                        else
+                            value = String.Format("< {0,0:D2} >", _gameCfg.MusicVolume);
+                        _menu.SetSubItem(2, 0, value);
+                    }
                     break;
-                    /*
-                case eMenuSetupRace:
-                    SilverFont.DrawText("<   >", ds, OPTION_VALUE_X, OPTION_POS_TOP + OPTION_SPACING);
-                    ds.DrawImage(portrait_x, portrait_y, 2);
-                    ds.DrawImage(portrait_x + 2, portrait_y + 2, portrait_sprite);
-                    value = String.Format("< %d >", ThisRace.Laps);
-                    SilverFont.DrawText(value, ds, OPTION_VALUE_X, OPTION_POS_TOP + OPTION_SPACING * 2);
-                    value = String.Format("< %d >", ThisRace.Opponents);
-                    SilverFont.DrawText(value, ds, OPTION_VALUE_X, OPTION_POS_TOP + OPTION_SPACING * 3);
-                    if (ThisRace.AiAndPhysics == ePhysicsWild)
-                        value = "Wild";
-                    else
-                        value = "Safe";
-                    SilverFont.DrawText(value, ds, OPTION_VALUE_X, OPTION_POS_TOP + OPTION_SPACING * 4);
-                    if (ThisRace.CarCollisions)
-                        value = "ON";
-                    else
-                        value = "OFF";
-                    SilverFont.DrawText(value, ds, OPTION_VALUE_X, OPTION_POS_TOP + OPTION_SPACING * 5);
-                    ds.DrawImage(car_x, car_y, 2);
-                    ds.DrawImage(car_x + car_xoff, car_y + car_yoff, car_sprite);
+                case MenuClass.eMenuSetupRace:
+                    {
+                        string value = "<   >";
+                        int subwidth = _menu.Font.GetTextWidth(value);
+                        string driverName = LF.RaceAssets.Names[_raceCfg.PlayerDriver];
+                        DriverCharacter driver = LF.RaceAssets.Drivers[driverName];
+                        IImage frame = LF.RaceMenu.PortraitFrame;
+                        IImage face_pic = driver.Portrait;
+                        float portrait_x = (subwidth - frame.Width) / 2 - 5;
+                        float portrait_y = _menu.Font.Height / 2 - frame.Height / 2;
+                        IImage car_pic = driver.CarModel;
+                        float car_x = (subwidth + frame.Width) / 2 + 5;
+                        float car_y = portrait_y;
+                        
+                        _menu.SetSubItem(1, 0, value);
+                        _menu.SetSubItemPic(1, 1, frame, portrait_x, portrait_y, -3);
+                        _menu.SetSubItemPic(1, 2, face_pic, portrait_x, portrait_y, -4);
+                        _menu.SetSubItemPic(1, 3, frame, car_x, car_y, -3);
+                        _menu.SetSubItemPic(1, 4, car_pic, car_x, car_y, -4);
+                        _menu.SetSubItem(2, 0, String.Format("< {0,0:D1} >", _raceCfg.Laps));
+                        _menu.SetSubItem(3, 0, String.Format("< {0,0:D1} >", _raceCfg.Opponents));
+                        if (_raceCfg.Physics == RacePhysicsMode.Wild)
+                            value = "Wild";
+                        else
+                            value = "Safe";
+                        _menu.SetSubItem(4, 0, value);
+                        if (_raceCfg.CarCollisions)
+                            value = "ON";
+                        else
+                            value = "OFF";
+                        _menu.SetSubItem(5, 0, value);
+                    }
                     break;
-                    */
             }
-            /* TODO:
-             * 
-             * 
-            DrawingSurface* ds = SprOptions.GetDrawingSurface();
-            ds.DrawingColor = COLOR_TRANSPARENT;
-            ds.DrawRectangle(OPTION_VALUE_X, 0, SprOptions.Width - 1, SprOptions.Height - 1);
-
-            String value;
-            int portrait_sprite = 100 + ThisRace.PlayerDriver;
-            int portrait_x = OPTION_VALUE_X + SilverFont.GlyphWidth * 5 / 2 - 10 - Game.SpriteWidth[2] - 5;
-            int portrait_y = OPTION_POS_TOP + OPTION_SPACING + OPTION_HEIGHT / 2 - Game.SpriteHeight[2] / 2;
-            int car_sprite = 7 + ThisRace.PlayerDriver;
-            int car_x = OPTION_VALUE_X + SilverFont.GlyphWidth * 5 / 2 - 10 + 5;
-            int car_y = portrait_y;
-            int car_xoff = (Game.SpriteWidth[2] - Game.SpriteWidth[car_sprite]) / 2;
-            int car_yoff = (Game.SpriteHeight[2] - Game.SpriteHeight[car_sprite]) / 2;
-
-            
-            ds.Release();
-            btnMenuOptions.NormalGraphic = SprOptions.Graphic; // poke button to force AGS redraw it
-            */
         }
 
         private static void cancelMenu()
         {
-
+            if (_menuClass == MenuClass.eMenuMain || _menuClass == MenuClass.eMenuMainInGame)
+            {
+                HideMenu();
+            }
+            else if (_prevMenuClass != MenuClass.eMenuNone)
+            {
+                switchToMenu(_prevMenuClass);
+            }
         }
 
         private static void switchToMenu(MenuClass menu)
@@ -389,6 +410,7 @@ namespace LastAndFurious
         {
             Dispose();
             await LF.RaceAssets.LoadAll(_game);
+            await LF.RaceMenu.LoadAll(_game);
             await LF.Rooms.RaceRoom.GotoAsync();
         }
 
@@ -405,21 +427,58 @@ namespace LastAndFurious
             */
         }
 
-        private static void changeMusicVol(bool up = true)
+        private static void changeMusicVol(bool up)
         {
             if (up)
-                setMusicVol(_musicVolume + 5);
+                setMusicVol(_gameCfg.MusicVolume + 5);
             else
-                setMusicVol(_musicVolume - 5);
-            if (IsShown)
-                updateOptionValues();
+                setMusicVol(_gameCfg.MusicVolume - 5);
+            updateOptionValues();
+        }
+
+        private static void changeDriver(bool up)
+        {
+            _raceCfg.PlayerDriver = up ? _raceCfg.PlayerDriver + 1 : _raceCfg.PlayerDriver - 1;
+            if (_raceCfg.PlayerDriver < 0) _raceCfg.PlayerDriver = LF.RaceAssets.Drivers.Count - 1;
+            else if (_raceCfg.PlayerDriver == LF.RaceAssets.Drivers.Count) _raceCfg.PlayerDriver = 0;
+            updateOptionValues();
+        }
+
+        private static void changeLaps(bool up)
+        {
+            _raceCfg.Laps = up ? _raceCfg.Laps + 1 : _raceCfg.Laps - 1;
+            _raceCfg.Laps = MathHelper.Clamp(_raceCfg.Laps, 1, 9);
+            updateOptionValues();
+        }
+
+        private static void changeOpponents(bool up)
+        {
+            _raceCfg.Opponents = up ? _raceCfg.Opponents + 1 : _raceCfg.Opponents - 1;
+            _raceCfg.Opponents = MathHelper.Clamp(_raceCfg.Opponents, 0, Race.MAX_RACING_CARS - 1);
+            updateOptionValues();
+        }
+
+        private static void changePhysics()
+        {
+            if (_raceCfg.Physics == RacePhysicsMode.Safe)
+                _raceCfg.Physics = RacePhysicsMode.Wild;
+            else
+                _raceCfg.Physics = RacePhysicsMode.Safe;
+            updateOptionValues();
+        }
+
+        private static void changeCollisions()
+        {
+            _raceCfg.CarCollisions = !_raceCfg.CarCollisions;
+            updateOptionValues();
         }
 
         // TODO: move to game config controller, or something
         private static void setMusicVol(int vol)
         {
-            _musicVolume = MathHelper.Clamp(vol, 0, 100);
-            _game.AudioSettings.MasterVolume = _musicVolume * 0.01f;
+            _gameCfg.MusicVolume = MathHelper.Clamp(vol, 0, 100);
+            // TODO: separate volume for music tracks
+            _game.AudioSettings.MasterVolume = _gameCfg.MusicVolume * 0.01f;
         }
     }
 }

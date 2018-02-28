@@ -6,6 +6,7 @@ using AGS.Engine;
 
 namespace LastAndFurious
 {
+    // TODO: move some parts into non-static resource managers
     public static class LF
     {
         public const string GAME_VERSION = "v0.1.0";
@@ -55,6 +56,15 @@ namespace LastAndFurious
         {
             public static IImage Selector;
             public static IImage VBar;
+            public static IImage PortraitFrame;
+
+            public static async Task LoadAll(IGame game)
+            {
+                IGraphicsFactory f = game.Factory.Graphics;
+                Selector = await f.LoadImageAsync(UIAssetFolder + "hor.png", MagicColor.TopLeftPixel);
+                VBar = await f.LoadImageAsync(UIAssetFolder + "vert.png", MagicColor.TopLeftPixel);
+                PortraitFrame = await f.LoadImageAsync(UIAssetFolder + "blackframe.png", MagicColor.TopLeftPixel);
+            }
         }
 
         public static class Rooms
@@ -85,9 +95,10 @@ namespace LastAndFurious
                 for (int i = 0; i < Names.Length; ++i)
                 {
                     string name = Names[i];
-                    IImage carmodel = await f.LoadImageAsync(String.Format("{0}carmodel{1}.png", ObjectAssetFolder, i + 1), LF.MagicColor.TopLeftPixel);
+                    IImage carmodel = await f.LoadImageAsync(String.Format("{0}carmodel{1}.png", ObjectAssetFolder, i + 1), MagicColor.TopLeftPixel);
                     CarModels.Add(name, carmodel);
-                    Drivers.Add(name, new DriverCharacter(name, null, carmodel, 90.0F));
+                    IImage portrait = await f.LoadImageAsync(String.Format("{0}face{1}.png", UIAssetFolder, i + 1), MagicColor.TopLeftPixel);
+                    Drivers.Add(name, new DriverCharacter(name, portrait, carmodel, 90.0F));
                 }
             }
         }

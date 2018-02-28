@@ -16,22 +16,26 @@ namespace LastAndFurious
         // First and last glyphs are symbol codes that define supported range for this font
         int _firstGlyph;
         int _lastGlyph;
-        // Glyph width for monospaced (fixed-width) fonts, or default width also used to know
-        // letter coordinate for varied-width fonts
         int _glyphWidth;
         // Individual offsets and widths for each glyth; they are set to 0 and GlyphWidth when
         // the font is created, but can be modified.
         int[] _offs;
         int[] _widths;
+        int _height;
+        int _baseline;
 
+        /// <summary>
+        /// Glyph width for monospaced (fixed-width) fonts.
+        /// </summary>
+        public int GlyphWidth { get => _glyphWidth; }
         /// <summary>
         /// Gets the full height of the font.
         /// </summary>
-        public int Height { get; private set; }
+        public int Height { get => _height; }
         /// <summary>
         /// Gets the font's baseline.
         /// </summary>
-        public int Baseline { get; private set; }
+        public int Baseline { get => _baseline; }
 
         /// <summary>
         /// Create font from the bitmap.
@@ -62,8 +66,8 @@ namespace LastAndFurious
             font._firstGlyph = gl_first;
             font._lastGlyph = gl_last;
             font._glyphWidth = gl_width;
-            font.Height = height;
-            font.Baseline = baseline;
+            font._height = height;
+            font._baseline = baseline;
             
             if (offs != null)
             {
