@@ -233,10 +233,10 @@ namespace LastAndFurious
                     _menu.AddItem("Quit", onQuit);
                     break;
                 case MenuClass.eMenuMain:
-                    _menu.AddItem("Race");
-                    _menu.AddItem("Watch Demo");
-                    _menu.AddItem("Music");
-                    _menu.AddItem("Quit");
+                    _menu.AddItem("Race", () => { switchToMenu(MenuClass.eMenuSetupRace); });
+                    _menu.AddItem("Watch Demo", HideMenu);
+                    _menu.AddItem("Music", () => changeMusicVol(true), () => changeMusicVol(false), () => changeMusicVol(true));
+                    _menu.AddItem("Quit", onQuit);
                     break;
                 case MenuClass.eMenuMainInGame:
                     _menu.AddItem("Continue", HideMenu);

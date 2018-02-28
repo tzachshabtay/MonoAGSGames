@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Timers;
+using System.Threading.Tasks;
 using AGS.API;
 using AGS.Engine;
 
@@ -7,6 +8,8 @@ namespace LastAndFurious
     public class RaceRoom : RoomScript
     {
         private const string ROOM_ID = "RaceRoom";
+        private const float CHANGE_AI_CAMERA_TIME = 8000f;
+
         private IAudioClip _music;
 
         private Vector2[] _startingGrid; // TODO: move to Track config
@@ -17,8 +20,9 @@ namespace LastAndFurious
         // Supported ai controller types
         private AIRegionBased _aiRegionBased;
         // TODO: move to camera manager
-        private LastAndFurious.Camera _camera;
+        private Camera _camera;
         private IObject _cameraTarget;
+        private Timer _tChangeAICamera;
 
         private bool _isAIRace;
 
@@ -36,6 +40,9 @@ namespace LastAndFurious
             _ai = null;
             _camera = null;
             _cameraTarget = null;
+            if (_tChangeAICamera != null)
+                _tChangeAICamera.Dispose();
+            _tChangeAICamera = null;
         }
 
         protected override async Task<IRoom> loadAsync()
@@ -85,10 +92,7 @@ namespace LastAndFurious
             StopAllAudio();
             */
 
-            // TODO:
-            //setupAIRace();
-            setupSinglePlayerRace();
-
+            setupAIRace();
             _music.Play(true);
         }
 
@@ -96,9 +100,14 @@ namespace LastAndFurious
         {
             /* TODO:
             FadeIn(50);
-            if (IsAIRace)
-                tChangeAICamera = Timer.StartRT(CHANGE_AI_CAMERA_TIME, eRepeat);
-                */
+            */
+            if (_isAIRace)
+            {
+                _tChangeAICamera = new Timer(CHANGE_AI_CAMERA_TIME);
+                _tChangeAICamera.AutoReset = true;
+                _tChangeAICamera.Elapsed += _tChangeAICamera_Elapsed;
+                _tChangeAICamera.Start();
+            }
         }
 
         private void onLeave()
@@ -139,10 +148,7 @@ namespace LastAndFurious
                 TestLapComplete();
             }
 
-            if (IsAIRace && Timer.HasExpired(tChangeAICamera))
-            {
-                CameraTargetRandomAICar(false);
-            }
+            
 
             if (gRaceOverlay.Visible)
             {
@@ -177,7 +183,8 @@ namespace LastAndFurious
             if (LF.GameState.Paused)
                 return;
 
-            if (_isAIRace || args.Key == Key.Escape)
+            // TODO: a way to lock input focus?
+            if (!GameMenu.IsShown && (_isAIRace || args.Key == Key.Escape))
             {
                 if (_isAIRace)
                     GameMenu.ShowMenu(MenuClass.eMenuMain, false);
@@ -186,6 +193,11 @@ namespace LastAndFurious
 
                 // ClaimEvent();
             }
+        }
+
+        private void _tChangeAICamera_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            cameraTargetRandomCar(false);
         }
 
         private void clearRace()
@@ -232,15 +244,12 @@ namespace LastAndFurious
                 _camera.Snap();
         }
 
-        private void cameraTargetRandomAICar(bool snap)
+        private void cameraTargetRandomCar(bool snap)
         {
-            _cameraTarget = _race.PlayerCar.O;
-            /* TODO:
-            Camera.TargettingAcceleration = 0.5;
-            Camera.TargetCharacter = character[cAICar1.ID + Random(5)];
+            _cameraTarget = _race.Cars[MathUtils.Random().Next(0, _race.Cars.Count - 1)].O;
+            _camera.TargettingAcceleration = 0.5f;
             if (snap)
-                Camera.Snap();
-                */
+                _camera.Snap();
         }
 
         // TODO: work around this
@@ -274,7 +283,7 @@ namespace LastAndFurious
             */
 
             _game.State.Viewport.Camera.Target = getCameraTarget;
-            cameraTargetRandomAICar(true);
+            cameraTargetRandomCar(true);
 
             _isAIRace = true;
             /*
@@ -306,7 +315,6 @@ namespace LastAndFurious
                 _ai = _aiRegionBased;
             for (int i = 0; i < drivers.Length; ++i)
             {
-                _ai.GetVehicleAI();
                 VehicleObject car;
                 if (drivers[i] == _race.PlayerDriver)
                 {
