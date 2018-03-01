@@ -36,6 +36,17 @@ namespace LastAndFurious
             return (float)Math.Atan2(v.Y, v.X);
         }
 
+        /// <summary>
+        /// Calculates distance between two points.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static float Distance(Vector2 a, Vector2 b)
+        {
+            return (float)Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+        }
+
         public static bool IsZero(this Vector2 v)
         {
             return MathUtils.FloatEquals(v.X, 0) && MathUtils.FloatEquals(v.Y, 0);

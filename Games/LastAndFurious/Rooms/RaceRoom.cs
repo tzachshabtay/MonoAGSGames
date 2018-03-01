@@ -1,10 +1,29 @@
-﻿using System.Timers;
+﻿using System.Collections.Generic;
+using System.Timers;
 using System.Threading.Tasks;
 using AGS.API;
 using AGS.Engine;
 
 namespace LastAndFurious
 {
+    public struct RaceEventConfig
+    {
+        public int PlayerDriver; // TODO: use string ID instead?
+        public int Opponents;
+        public int Laps;
+        public RacePhysicsMode Physics;
+        public bool CarCollisions;
+
+        public RaceEventConfig(int player, int opponents, int laps, RacePhysicsMode mode, bool carCollide)
+        {
+            PlayerDriver = player;
+            Opponents = opponents;
+            Laps = laps;
+            Physics = mode;
+            CarCollisions = carCollide;
+        }
+    }
+
     public class RaceRoom : RoomScript
     {
         private const string ROOM_ID = "RaceRoom";
@@ -19,6 +38,7 @@ namespace LastAndFurious
         private AIController _ai;
         // Supported ai controller types
         private AIRegionBased _aiRegionBased;
+        private AIPathBase _aiPathBased;
         // TODO: move to camera manager
         private Camera _camera;
         private IObject _cameraTarget;
@@ -31,18 +51,40 @@ namespace LastAndFurious
         {
         }
 
+        public void StartSinglePlayer(RaceEventConfig eventCfg)
+        {
+            GameMenu.HideMenu();
+            // FadeOut(50); TODO
+            setupSinglePlayerRace(eventCfg);
+            // FadeIn(50); TODO
+            runStartSequence();
+        }
+
+        public void StartAIDemo(RaceEventConfig eventCfg)
+        {
+            GameMenu.HideMenu();
+            // FadeOut(50); TODO
+            setupAIRace(eventCfg);
+            // FadeIn(50); TODO
+        }
+
         protected void clearRoom()
         {
-            _race = null;
-            _track = null;
-            _startingGrid = null;
-            _aiRegionBased = null;
-            _ai = null;
-            _camera = null;
-            _cameraTarget = null;
             if (_tChangeAICamera != null)
                 _tChangeAICamera.Dispose();
             _tChangeAICamera = null;
+            _cameraTarget = null;
+            _camera = null;
+
+            _aiRegionBased = null;
+            _aiPathBased = null;
+            _ai = null;
+
+            if (_race != null)
+                _race.Clear();
+            _race = null;
+            _track = null;
+            _startingGrid = null;
         }
 
         protected override async Task<IRoom> loadAsync()
@@ -78,6 +120,8 @@ namespace LastAndFurious
             // Create Ai controllers supported by this track
             if (_track.AiData.AIRegionMask != null && _track.AiData.AIRegionAngles != null)
                 _aiRegionBased = new AIRegionBased(_game, _track.AiData.AIRegionMask, _track.AiData.AIRegionAngles);
+            if (_track.AiData.AIPathNodes != null)
+                _aiPathBased = new AIPathBase(_game, _track.AiData.AIPathNodes);
 
             _camera = new Camera();
             _game.State.Viewport.Camera = _camera;
@@ -92,7 +136,9 @@ namespace LastAndFurious
             StopAllAudio();
             */
 
-            setupAIRace();
+            // TODO: take physics and car collide mode from the actual game config
+            RaceEventConfig cfg = new RaceEventConfig(-1, LF.RaceAssets.Drivers.Count, -1, RacePhysicsMode.Safe, false);
+            setupAIRace(cfg);
             _music.Play(true);
         }
 
@@ -112,9 +158,8 @@ namespace LastAndFurious
 
         private void onLeave()
         {
-            /*
-            ClearRace();
-            Timer.StopIt(tChangeAICamera);
+            clearRace();
+            /* TODO:
             StopAllAudio();
             */
         }
@@ -208,8 +253,6 @@ namespace LastAndFurious
             gRaceOverlay.Transparency = 0;
             if (RaceOverlay != null)
                 RaceOverlay.Delete();
-
-            ResetAI();
             */
 
 
@@ -224,6 +267,10 @@ namespace LastAndFurious
             }
             
             */
+
+            if (_tChangeAICamera != null)
+                _tChangeAICamera.Dispose();
+            _tChangeAICamera = null;
         }
 
         private void positionCarOnGrid(VehicleObject car, int gridpos)
@@ -258,29 +305,88 @@ namespace LastAndFurious
             return _cameraTarget;
         }
 
-        private void setupAIRace()
+        private void setupRace(RaceEventConfig eventCfg)
         {
-            _game.State.Paused = true;
-            _race.Clear();
+            clearRace();
 
-            DriverCharacter[] drivers = new DriverCharacter[LF.RaceAssets.Drivers.Count];
-            LF.RaceAssets.Drivers.Values.CopyTo(drivers, 0);
-            Utils.Shuffle(drivers, new System.Random());
+            // Prepare list of drivers
+            DriverCharacter playerDriver;
+            List<DriverCharacter> drivers;
+            prepareListOfDrivers(eventCfg, out drivers, out playerDriver);
 
             // Switch to the desired AI type
-            if (_aiRegionBased != null)
-                _ai = _aiRegionBased;
-            for (int i = 0; i < drivers.Length; ++i)
-            {
-                var car = _race.AddRacingCar(drivers[i], _ai.GetVehicleAI());
-                positionCarOnGrid(car, i);
-            }
+            if (eventCfg.Physics == RacePhysicsMode.Safe)
+                if (_aiRegionBased != null)
+                    _ai = _aiRegionBased;
+                else
+                if (_aiRegionBased != null)
+                    _ai = _aiPathBased;
 
-            readRaceConfig();
+            // Create cars, assign AI, put on the starting grid...
+            createRacingCars(drivers, playerDriver);
+
+            // Read customizable settings for the track and vehicle behavior
+            readAIAndPhysicsConfig(eventCfg.Physics == RacePhysicsMode.Safe ? "race_safe.ini" : "race_wild.ini");
 
             /*
             LoadRaceCheckpoints();
             */
+        }
+
+        private void prepareListOfDrivers(RaceEventConfig eventCfg,
+            out List<DriverCharacter> drivers, out DriverCharacter playerDriver)
+        {
+            playerDriver = null;
+            drivers = new List<DriverCharacter>();
+
+            // Add player, if its required
+            if (eventCfg.PlayerDriver >= 0)
+            {
+                playerDriver = LF.RaceAssets.Drivers[LF.RaceAssets.Names[eventCfg.PlayerDriver]];
+                drivers.Add(playerDriver);
+            }
+            // Choose random set of opponents
+            if (eventCfg.Opponents > 0)
+            {
+                DriverCharacter[] allDrivers = new DriverCharacter[LF.RaceAssets.Drivers.Count];
+                LF.RaceAssets.Drivers.Values.CopyTo(allDrivers, 0);
+                Utils.Shuffle(allDrivers, new System.Random());
+                for (int i = 0, cnt = 0; cnt < eventCfg.Opponents; ++i)
+                {
+                    if (allDrivers[i] != playerDriver)
+                    {
+                        drivers.Add(allDrivers[i]);
+                        cnt++;
+                    }
+                }
+            }
+        }
+
+        private void createRacingCars(List<DriverCharacter> drivers, DriverCharacter playerDriver)
+        {
+            for (int i = 0; i < drivers.Count; ++i)
+            {
+                VehicleObject car;
+                if (drivers[i] == playerDriver)
+                {
+                    car = _race.AddRacingCar(drivers[i], new VehiclePlayerUI(_game));
+                    car.Veh.Physics.StrictCollisions = true;
+                    _race.PlayerCar = car;
+                }
+                else
+                {
+                    car = _race.AddRacingCar(drivers[i], _ai.GetVehicleAI());
+                }
+                positionCarOnGrid(car, i);
+            }
+        }
+
+        // TODO: share duplicate code with setupSinglePlayerRace
+        private void setupAIRace(RaceEventConfig eventCfg)
+        {
+            _game.State.Paused = true;
+
+            setupRace(eventCfg);
 
             _game.State.Viewport.Camera.Target = getCameraTarget;
             cameraTargetRandomCar(true);
@@ -295,46 +401,11 @@ namespace LastAndFurious
             _game.State.Paused = false;
         }
 
-        private void setupSinglePlayerRace()
+        private void setupSinglePlayerRace(RaceEventConfig eventCfg)
         {
             _game.State.Paused = true;
-            _race.Clear();
-            // TODO: take from config
-            DriverCharacter driver;
-            LF.RaceAssets.Drivers.TryGetValue("blue", out driver);
-            _race.PlayerDriver = driver;
 
-            // TODO: ThisRace.Opponents
-            
-            DriverCharacter[] drivers = new DriverCharacter[LF.RaceAssets.Drivers.Count];
-            LF.RaceAssets.Drivers.Values.CopyTo(drivers, 0);
-            Utils.Shuffle(drivers, new System.Random());
-
-            // Switch to the desired AI type
-            if (_aiRegionBased != null)
-                _ai = _aiRegionBased;
-            for (int i = 0; i < drivers.Length; ++i)
-            {
-                VehicleObject car;
-                if (drivers[i] == _race.PlayerDriver)
-                {
-                    car = _race.AddRacingCar(drivers[i], new VehiclePlayerUI(_game));
-                    car.Veh.Physics.StrictCollisions = true;
-                    _race.PlayerCar = car;
-                }
-                else
-                {
-                    car = _race.AddRacingCar(drivers[i], _ai.GetVehicleAI());
-                }
-                positionCarOnGrid(car, i);
-            }
-            
-            
-            readRaceConfig();
-
-            /*
-            LoadRaceCheckpoints();
-            */
+            setupRace(eventCfg);
 
             _game.State.Viewport.Camera.Target = getCameraTarget;
             cameraTargetPlayerCar(true);
@@ -356,21 +427,155 @@ namespace LastAndFurious
             _game.State.Paused = false;
         }
 
-        private void readRaceConfig()
+        private void readAIAndPhysicsConfig(string cfgAsset)
         {
             // TODO: switch between config types
-            TrackConfig tcfg = TrackConfigurator.LoadConfig(_track, _roomAssetFolder + "race_safe.ini");
+            TrackConfig tcfg = TrackConfigurator.LoadConfig(_track, _roomAssetFolder + cfgAsset);
             if (tcfg != null)
             {
                 TrackConfigurator.ApplyConfig(_track, tcfg);
             }
 
-            VehicleConfig vcfg = VehicleConfigurator.LoadConfig(_track, _roomAssetFolder + "race_safe.ini");
+            VehicleConfig vcfg = VehicleConfigurator.LoadConfig(_track, _roomAssetFolder + cfgAsset);
             if (vcfg != null)
             {
                 foreach (var car in _race.Cars)
                     VehicleConfigurator.ApplyConfig(car.Veh, vcfg);
             }
         }
+
+        void runStartSequence()
+        {
+            /*
+            if (RaceStartSequence == 0)
+            {
+                gBanner.BackgroundGraphic = 15;
+                gBanner.X = (System.ViewportWidth - gBanner.Width) / 2;
+                gBanner.Y = -gBanner.Height;
+                gBanner.Visible = true;
+                gRaceOverlay.X = -gRaceOverlay.Width;
+                gRaceOverlay.Visible = false;
+                RaceStartSequence = 1;
+            }
+            else if (RaceStartSequence == 1)
+            {
+                if (gBanner.Y < 160)
+                {
+                    gBanner.Y = gBanner.Y + 12;
+                }
+                if (gBanner.Y > 160)
+                {
+                    gBanner.Y = 160;
+                    tSequence = Timer.StartRT(0.8);
+                    RaceStartSequence = 2;
+                }
+            }
+            else if (RaceStartSequence == 2)
+            {
+                if (Timer.HasExpired(tSequence))
+                {
+                    gBanner.BackgroundGraphic = 16;
+                    tSequence = Timer.StartRT(0.8);
+                    RaceStartSequence = 3;
+                }
+            }
+            else if (RaceStartSequence == 3)
+            {
+                if (Timer.HasExpired(tSequence))
+                {
+                    gBanner.BackgroundGraphic = 16;
+                    tSequence = Timer.StartRT(0.8);
+                    gBanner.BackgroundGraphic = 17;
+                    gRaceOverlay.Visible = true;
+                    RaceStartSequence = 0;
+                    HoldRace = false;
+                    HoldAI = false;
+                }
+            }
+            */
+        }
+
+        /* TODO:
+        void RunEndSequence()
+        {
+            if (RaceEndSequence == 0)
+            {
+                gRaceOverlay.Transparency = 20;
+                if (Racers[0].Finished == 1)
+                {
+                    gBanner.BackgroundGraphic = 21;
+                }
+                else
+                {
+                    gBanner.BackgroundGraphic = 20;
+                }
+                gBanner.X = (System.ViewportWidth - gBanner.Width) / 2;
+                gBanner.Y = -gBanner.Height;
+                gBanner.Visible = true;
+                RaceEndSequence = 1;
+            }
+            else if (RaceEndSequence == 1)
+            {
+                if (gBanner.Y < 160)
+                {
+                    gBanner.Y = gBanner.Y + 12;
+                }
+                if (gBanner.Y > 160)
+                {
+                    gBanner.Y = 160;
+                    RaceEndSequence = 2;
+                }
+            }
+            else if (RaceStartSequence == 2)
+            {
+            }
+        }
+
+        void OnPlayerFinishedRace()
+        {
+            RunEndSequence();
+        }
+
+        void TestLapComplete()
+        {
+            int i;
+            for (i = 0; i < MAX_RACING_CARS; i++)
+            {
+                if (!Racers[i].IsActive)
+                    continue;
+                if (i > 1 && !IsAIEnabledForCar(i))
+                    continue;
+
+                if (!(Checkpoints[Racers[i].CurRaceNode].order == 0 && Racers[i].CheckptsPassed > 0))
+                    continue;
+
+                int pt;
+                int hit_lap_test;
+                for (pt = 0; pt < NUM_COLLISION_POINTS; pt++)
+                {
+                    Region* r = Region.GetAtRoomXY(FloatToInt(Cars[i].collPoint[pt].x, eRoundNearest), FloatToInt(Cars[i].collPoint[pt].y, eRoundNearest));
+                    if (r.ID == 1)
+                    {
+                        hit_lap_test = true;
+                        break;
+                    }
+                }
+
+                if (hit_lap_test)
+                {
+                    Racers[i].SwitchToNextNode();
+                    OnLapComplete(i);
+
+                    if (Racers[i].Finished > 0)
+                    {
+                        if (i == 0)
+                            OnPlayerFinishedRace();
+                        else
+                            DisableAIForCar(i);
+                    }
+                }
+            }
+        }
+        */
     }
 }

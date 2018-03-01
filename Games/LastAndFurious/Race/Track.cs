@@ -42,6 +42,16 @@ namespace LastAndFurious
         }
     }
 
+    public class PathNode
+    {
+        public Vector2 pt;
+        public float radius; // radius at which vehicle may "check in" this node
+        public float threshold; // radius at which vehicle may stop turning towards center of the node
+        public float speed; // recommended speed after this node (< 0 means any speed)
+        public PathNode prev;
+        public PathNode next;
+    };
+
     /// <summary>
     /// Describes AI data available for the racing track.
     /// </summary>
@@ -49,6 +59,8 @@ namespace LastAndFurious
     {
         public IBitmap AIRegionMask { get; set; }
         public Dictionary<Color, float> AIRegionAngles { get; set; }
+
+        public List<PathNode> AIPathNodes { get; set; }
     }
 
     /// <summary>

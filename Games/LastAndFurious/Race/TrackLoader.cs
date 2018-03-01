@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using AGS.API;
 using IniParser;
@@ -65,6 +66,7 @@ namespace LastAndFurious
         {
             TrackAIData data = new TrackAIData();
             await LoadAIRegionsData(data, assetpath, f);
+            LoadAIPathsData(data, assetpath);
             return data;
         }
 
@@ -98,6 +100,49 @@ namespace LastAndFurious
             data.AIRegionMask = regionMask;
             data.AIRegionAngles = regionAngles;
             return;
+        }
+
+        // TODO: separate loading for data edited by MonoAGS version
+        private static void LoadAIPathsData(TrackAIData data, string assetpath)
+        {
+            Stream s = File.OpenRead(assetpath + "aipaths.dat");
+            if (s == null)
+                return;
+
+            List<PathNode> paths = new List<PathNode>();
+            AGSFileReader f = new AGSFileReader(s);
+            int firstNodeIndex = f.ReadInt();
+            int lastNodeIndex = f.ReadInt();
+            int n = firstNodeIndex;
+            PathNode last = null;
+            do
+            {
+                int x = f.ReadInt();
+                int y = f.ReadInt();
+                PathNode node = new PathNode();
+                node.pt = new Vector2(x, y);
+                node.radius = f.ReadInt();
+                node.threshold = f.ReadInt();
+                node.speed = f.ReadInt();
+                int p = f.ReadInt();
+                n = f.ReadInt();
+                if (last != null)
+                {
+                    node.prev = last;
+                    last.next = node;
+                }
+                last = node;
+                paths.Add(node);
+            }
+            while (n != firstNodeIndex);
+            // Bind last node to the first one
+            if (last != null)
+            {
+                last.next = paths[0];
+                paths[0].prev = last;
+            }
+
+            data.AIPathNodes = paths;
         }
     }
 }

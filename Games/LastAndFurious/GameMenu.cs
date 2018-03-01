@@ -1,5 +1,4 @@
-﻿using System;
-using AGS.API;
+﻿using AGS.API;
 using AGS.Engine;
 
 namespace LastAndFurious
@@ -24,15 +23,6 @@ namespace LastAndFurious
     public struct GameConfig
     {
         public int MusicVolume;
-    }
-
-    public struct RaceEventConfig
-    {
-        public int PlayerDriver;
-        public int Opponents;
-        public int Laps;
-        public RacePhysicsMode Physics;
-        public bool CarCollisions;
     }
 
     // TODO: remake into non-static class
@@ -67,12 +57,14 @@ namespace LastAndFurious
             _game = game;
             _gameCfg = new GameConfig();
             _raceCfg = new RaceEventConfig();
-            SetConfigToDefault();
+            setOptionsToDefault();
+            loadOptions();
+            applyGameOptions();
         }
 
-        public static void SetConfigToDefault()
+        private static void setOptionsToDefault()
         {
-            setMusicVol(100);
+            _gameCfg.MusicVolume = 100;
             /*
 # ifdef DEBUG
                 IsDebugMode = true;
@@ -86,6 +78,21 @@ namespace LastAndFurious
             _raceCfg.Opponents = 3;
             _raceCfg.Physics = RacePhysicsMode.Safe;
             _raceCfg.CarCollisions = true;
+        }
+
+        private static void loadOptions()
+        {
+            UserConfig.Load(LF.UserDataFolder + "options.ini", ref _gameCfg, ref _raceCfg);
+        }
+
+        private static void saveOptions()
+        {
+            UserConfig.Save(LF.UserDataFolder + "options.ini", _gameCfg, _raceCfg);
+        }
+
+        private static void applyGameOptions()
+        {
+            setMusicVol(_gameCfg.MusicVolume);
         }
 
         public static void ShowMenu(MenuClass menuClass, bool pausedInGame = false)
@@ -126,10 +133,8 @@ namespace LastAndFurious
         {
             if (!IsShown)
                 return;
-            /* TODO:
-            SaveOptions();
-            gUnderlay.Visible = false;
-            */
+
+            saveOptions();
             _menu.ClearItems();
             _menuObject.Visible = false;
             _menuClass = MenuClass.eMenuNone;
@@ -278,36 +283,6 @@ namespace LastAndFurious
                     PurpleItalicFont.DrawTextCentered("Press any key to continue", ds, 0, STARTMENU_OPTION_POS_TOP + STARTMENU_OPTION_SPACING * 2, ds.Width);
                     break;
             }
-
-            btnMenuOptions.NormalGraphic = SprOptions.Graphic;
-            btnMenuOptions.Visible = true;
-            if (MenuType == eMenuStart)
-            {
-                btnMMSelector.NormalGraphic = 1;
-                btnMMSelector.Visible = true;
-                btnMMVrStrip.Visible = false;
-                gUnderlay.Visible = false;
-            }
-            else if (MenuType == eMenuCredits)
-            {
-                btnMMSelector.Visible = false;
-                btnMMVrStrip.Visible = false;
-                gUnderlay.Visible = false;
-            }
-            else
-            {
-                btnMMSelector.NormalGraphic = 4;
-                btnMMSelector.Visible = true;
-                btnMMVrStrip.Visible = true;
-                gUnderlay.Visible = true;
-            }
-            */
-
-
-
-            /* TODO:
-                MMSelection = 0;
-                UpdateSelection();
             */
         }
 
@@ -324,7 +299,7 @@ namespace LastAndFurious
                         else if (_gameCfg.MusicVolume == 100)
                             value = "< FULL";
                         else
-                            value = String.Format("< {0,0:D2} >", _gameCfg.MusicVolume);
+                            value = string.Format("< {0,0:D2} >", _gameCfg.MusicVolume);
                         _menu.SetSubItem(2, 0, value);
                     }
                     break;
@@ -347,8 +322,8 @@ namespace LastAndFurious
                         _menu.SetSubItemPic(1, 2, face_pic, portrait_x, portrait_y, -4);
                         _menu.SetSubItemPic(1, 3, frame, car_x, car_y, -3);
                         _menu.SetSubItemPic(1, 4, car_pic, car_x, car_y, -4);
-                        _menu.SetSubItem(2, 0, String.Format("< {0,0:D1} >", _raceCfg.Laps));
-                        _menu.SetSubItem(3, 0, String.Format("< {0,0:D1} >", _raceCfg.Opponents));
+                        _menu.SetSubItem(2, 0, string.Format("< {0,0:D1} >", _raceCfg.Laps));
+                        _menu.SetSubItem(3, 0, string.Format("< {0,0:D1} >", _raceCfg.Opponents));
                         if (_raceCfg.Physics == RacePhysicsMode.Wild)
                             value = "Wild";
                         else
@@ -416,15 +391,14 @@ namespace LastAndFurious
 
         private static void onQuit()
         {
+            saveOptions();
             _game.Quit();
         }
 
         private static void onGo()
         {
-            /* TODO:
-            HideGameMenu();
-            CallRoomScript(eRoom305_StartSinglePlayer);
-            */
+            HideMenu();
+            LF.Rooms.RaceRoom.StartSinglePlayer(_raceCfg);
         }
 
         private static void changeMusicVol(bool up)
