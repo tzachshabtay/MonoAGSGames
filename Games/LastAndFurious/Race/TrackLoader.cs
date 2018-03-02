@@ -58,15 +58,16 @@ namespace LastAndFurious
 
             return new Track(background, regionColors.Count, regionMap);
             */
-            TrackAIData aiData = await LoadAIData(assetpath, f);
+            Size trackSize = mask != null ? new Size(mask.Width, mask.Height) : new Size();
+            TrackAIData aiData = await LoadAIData(assetpath, trackSize, f);
             return new Track(background, regionColors.Count, mask, regionColors, aiData);
         }
 
-        private static async Task<TrackAIData> LoadAIData(string assetpath, IGraphicsFactory f)
+        private static async Task<TrackAIData> LoadAIData(string assetpath, Size trackSize, IGraphicsFactory f)
         {
             TrackAIData data = new TrackAIData();
             await LoadAIRegionsData(data, assetpath, f);
-            LoadAIPathsData(data, assetpath);
+            LoadAIPathsData(data, assetpath, trackSize);
             return data;
         }
 
@@ -103,7 +104,7 @@ namespace LastAndFurious
         }
 
         // TODO: separate loading for data edited by MonoAGS version
-        private static void LoadAIPathsData(TrackAIData data, string assetpath)
+        private static void LoadAIPathsData(TrackAIData data, string assetpath, Size trackSize)
         {
             Stream s = File.OpenRead(assetpath + "aipaths.dat");
             if (s == null)
@@ -119,6 +120,8 @@ namespace LastAndFurious
             {
                 int x = f.ReadInt();
                 int y = f.ReadInt();
+                // NOTE: since MonoAGS has Y axis pointing up, we need to invert one read from AGS file
+                y = trackSize.Height - y;
                 PathNode node = new PathNode();
                 node.pt = new Vector2(x, y);
                 node.radius = f.ReadInt();

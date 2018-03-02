@@ -64,9 +64,14 @@ namespace LastAndFurious
 
         public void Clear()
         {
+            PlayerCar = new VehicleObject();
             foreach (var c in _cars)
                 _room.Objects.Remove(c.O);
             _cars.Clear();
+
+            PlayerDriver = null;
+            Opponents = 0;
+            Laps = 0;
 
             /*
             _driverPositions.Clear();

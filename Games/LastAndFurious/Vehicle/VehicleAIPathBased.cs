@@ -7,6 +7,7 @@ namespace LastAndFurious
     public class VehicleAIPathBased : VehicleControl
     {
         List<PathNode> _pathNodes;
+        bool _targetValid;
         Vector2 _targetPos;
         Vector2 _targetDir;
         float _targetCheckRadius;
@@ -18,11 +19,12 @@ namespace LastAndFurious
             : base(game)
         {
             _pathNodes = pathNodes;
+            _targetValid = false;
         }
 
         private bool testShouldChooseNewTarget()
         {
-            if (_targetPos == null)
+            if (!_targetValid)
                 return true;
             // Choose next path node if inside the check radius for current one, or closer to next one.
             if (_currentNode != null)
@@ -53,6 +55,7 @@ namespace LastAndFurious
                 _targetCheckRadius = _currentNode.radius;
                 _targetThreshold = _currentNode.threshold;
                 _targetSpeedHint = _currentNode.speed;
+                _targetValid = true;
             }
             else
             { // TODO??
@@ -63,8 +66,7 @@ namespace LastAndFurious
         private void driveToTheTarget()
         {
             // Turn into target's direction
-            // TODO: optimize by not creating new VectorF every time?
-            if (_targetPos == null)
+            if (!_targetValid)
                 return;
             _targetDir = Vector2.Subtract(_targetPos, _veh.Position);
 

@@ -70,18 +70,12 @@ namespace LastAndFurious
 
         protected void clearRoom()
         {
-            if (_tChangeAICamera != null)
-                _tChangeAICamera.Dispose();
-            _tChangeAICamera = null;
-            _cameraTarget = null;
-            _camera = null;
+            clearRace();
 
+            _camera = null;
             _aiRegionBased = null;
             _aiPathBased = null;
-            _ai = null;
-
-            if (_race != null)
-                _race.Clear();
+            
             _race = null;
             _track = null;
             _startingGrid = null;
@@ -136,8 +130,10 @@ namespace LastAndFurious
             StopAllAudio();
             */
 
-            // TODO: take physics and car collide mode from the actual game config
-            RaceEventConfig cfg = new RaceEventConfig(-1, LF.RaceAssets.Drivers.Count, -1, RacePhysicsMode.Safe, false);
+            RaceEventConfig cfg = GameMenu.RaceConfig;
+            cfg.PlayerDriver = -1; // no player
+            cfg.Opponents = LF.RaceAssets.Drivers.Count; // max drivers
+            cfg.Laps = 0; // drive forever
             setupAIRace(cfg);
             _music.Play(true);
         }
@@ -147,13 +143,6 @@ namespace LastAndFurious
             /* TODO:
             FadeIn(50);
             */
-            if (_isAIRace)
-            {
-                _tChangeAICamera = new Timer(CHANGE_AI_CAMERA_TIME);
-                _tChangeAICamera.AutoReset = true;
-                _tChangeAICamera.Elapsed += _tChangeAICamera_Elapsed;
-                _tChangeAICamera.Start();
-            }
         }
 
         private void onLeave()
@@ -254,23 +243,15 @@ namespace LastAndFurious
             if (RaceOverlay != null)
                 RaceOverlay.Delete();
             */
-
-
-            _race.Clear();
-
-            /* TODO:
-            player.ChangeView(CARVIEWDUMMY);
-            for (i = 0; i < MAX_RACING_CARS; i++)
-            {
-                character[cAICar1.ID + i].ChangeView(CARVIEWDUMMY);
-                character[cAICar1.ID + i].ChangeRoom(-1);
-            }
-            
-            */
-
             if (_tChangeAICamera != null)
                 _tChangeAICamera.Dispose();
             _tChangeAICamera = null;
+            _cameraTarget = null;
+
+            if (_race != null)
+                _race.Clear();
+
+            _ai = null;
         }
 
         private void positionCarOnGrid(VehicleObject car, int gridpos)
@@ -285,6 +266,12 @@ namespace LastAndFurious
 
         private void cameraTargetPlayerCar(bool snap)
         {
+            if (_tChangeAICamera != null)
+            {
+                _tChangeAICamera.Dispose();
+                _tChangeAICamera = null;
+            }
+
             _cameraTarget = _race.PlayerCar.O;
             _camera.TargettingAcceleration = 0f;
             if (snap)
@@ -293,6 +280,14 @@ namespace LastAndFurious
 
         private void cameraTargetRandomCar(bool snap)
         {
+            if (_tChangeAICamera == null)
+            {
+                _tChangeAICamera = new Timer(CHANGE_AI_CAMERA_TIME);
+                _tChangeAICamera.AutoReset = true;
+                _tChangeAICamera.Elapsed += _tChangeAICamera_Elapsed;
+                _tChangeAICamera.Start();
+            }
+
             _cameraTarget = _race.Cars[MathUtils.Random().Next(0, _race.Cars.Count - 1)].O;
             _camera.TargettingAcceleration = 0.5f;
             if (snap)
@@ -315,12 +310,10 @@ namespace LastAndFurious
             prepareListOfDrivers(eventCfg, out drivers, out playerDriver);
 
             // Switch to the desired AI type
-            if (eventCfg.Physics == RacePhysicsMode.Safe)
-                if (_aiRegionBased != null)
-                    _ai = _aiRegionBased;
-                else
-                if (_aiRegionBased != null)
-                    _ai = _aiPathBased;
+            if (eventCfg.Physics == RacePhysicsMode.Safe && _aiRegionBased != null)
+                _ai = _aiRegionBased;
+            else
+                _ai = _aiPathBased;
 
             // Create cars, assign AI, put on the starting grid...
             createRacingCars(drivers, playerDriver);
@@ -376,6 +369,7 @@ namespace LastAndFurious
                 else
                 {
                     car = _race.AddRacingCar(drivers[i], _ai.GetVehicleAI());
+                    car.Veh.Physics.StrictCollisions = false;
                 }
                 positionCarOnGrid(car, i);
             }
@@ -386,7 +380,7 @@ namespace LastAndFurious
         {
             _game.State.Paused = true;
 
-            setupRace(eventCfg);
+            setupRace(new RaceEventConfig(-1, eventCfg.Opponents, eventCfg.Laps, eventCfg.Physics, eventCfg.CarCollisions));
 
             _game.State.Viewport.Camera.Target = getCameraTarget;
             cameraTargetRandomCar(true);

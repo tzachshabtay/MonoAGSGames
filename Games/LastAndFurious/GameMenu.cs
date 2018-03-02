@@ -51,7 +51,8 @@ namespace LastAndFurious
         private static RaceEventConfig _raceCfg;
 
         public static bool IsShown { get => _menuObject != null && _menuObject.Visible; }
-        
+        public static RaceEventConfig RaceConfig { get => _raceCfg; }
+
         public static void Init(IGame game)
         {
             _game = game;
