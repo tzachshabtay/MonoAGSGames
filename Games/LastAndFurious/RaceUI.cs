@@ -90,7 +90,7 @@ namespace LastAndFurious
             _lapLabel = addChildObject("RaceUI.LapLabel", _pane, null, new SpriteFontRenderer(LF.Fonts.AzureItalicFont, null, AGSGame.GLUtils));
             _lapLabel.X = 3;
             _lapLabel.Y = 22;
-            _timeLabel = addChildObject("RaceUI.LapLabel", _pane, null, new SpriteFontRenderer(LF.Fonts.AzureItalicFont, null, AGSGame.GLUtils));
+            _timeLabel = addChildObject("RaceUI.TimeLabel", _pane, null, new SpriteFontRenderer(LF.Fonts.AzureItalicFont, null, AGSGame.GLUtils));
             _timeLabel.X = 3;
             _timeLabel.Y = 10;
         }

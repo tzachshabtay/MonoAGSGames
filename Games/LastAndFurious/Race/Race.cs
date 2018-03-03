@@ -66,7 +66,7 @@ namespace LastAndFurious
         /// </summary>
         /// TODO: do we actually need two lists?
         public IList<Racer> RacerPositions { get => _racerPositions; }
-        public bool CarCollisions { get => _carCollisions; set => _carCollisions = value; }
+        public bool CarCollisions { get => _carCollisions; }
 
 
         public Race(IGame game, IRoom room, Track track)
@@ -90,6 +90,17 @@ namespace LastAndFurious
             //_opponents = 0;
             _laps = 0;
             _racersFinished = 0;
+        }
+
+        // TODO: tidy the logic here, make it reset cars to the starting grid,
+        // reset racers progress, etc
+        public void Start(int laps, bool carCollisions)
+        {
+            _laps = laps;
+            _carCollisions = carCollisions;
+            
+            foreach (var r in _racers)
+                r.Reset(_track.Checkpoints[0]);
         }
 
         public Racer AddRacer(DriverCharacter c, VehicleControl control = null)
@@ -186,21 +197,21 @@ namespace LastAndFurious
             }
         }
 
-        private void onFinishedRace(int racer)
+        private void onFinishedRace(Racer racer)
         {
             _racersFinished++;
-            Racers[racer].Finished = _racersFinished;
+            racer.Finished = _racersFinished;
         }
 
-        private void onLapComplete(int racer)
+        public void OnLapComplete(Racer racer)
         {
-            if (Racers[racer].Lap == Laps)
+            if (racer.Lap == Laps)
             {
                 onFinishedRace(racer);
             }
             else
             {
-                Racers[racer].Lap++;
+                racer.Lap++;
             }
         }
         

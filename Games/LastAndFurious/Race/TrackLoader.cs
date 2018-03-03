@@ -85,6 +85,7 @@ namespace LastAndFurious
                 y = trackSize.Height - y;
                 RaceNode node = new RaceNode();
                 node.pt = new Vector2(x, y);
+                node.order = checkpoints.Count;
                 int p = f.ReadInt();
                 n = f.ReadInt();
                 if (last != null)

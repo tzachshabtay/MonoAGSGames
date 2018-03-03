@@ -10,6 +10,8 @@ namespace LastAndFurious
     /// IDEA: what if override ITranslate and reroute onto physics component?
     public class VehicleBehavior : AGSComponent
     {
+        private IEntity _entity;
+
         public VehicleRacer Racer { get; private set; }
         public VehiclePhysics Physics { get; private set; }
         public VehicleControl Control { get; private set; }
@@ -24,6 +26,13 @@ namespace LastAndFurious
             Racer = entity.AddComponent<VehicleRacer>();
             Physics = entity.AddComponent<VehiclePhysics>();
             entity.Bind<VehicleControl>(c => Control = c, _ => Control = null);
+            _entity = entity;
+        }
+
+        public void DisableControl()
+        {
+            _entity.RemoveComponent<VehicleControl>();
+            Control = null;
         }
     }
 }

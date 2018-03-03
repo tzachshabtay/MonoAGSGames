@@ -71,31 +71,22 @@ namespace LastAndFurious
             // Update time
             _time += deltaTime;
             // Update aimed checkpoint
-            if (_checkpoints.Count > 0)
+            if (_curRaceNode == null)
+                return;
+            RaceNode curNode = _curRaceNode;
+            RaceNode nextNode = _curRaceNode.next;
+            if (nextNode != null &&
+                Vectors.Distance(Car.Veh.Physics.Position, nextNode.pt) < Vectors.Distance(curNode.pt, nextNode.pt))
             {
-                if (_curRaceNode == null)
+                SwitchToNextNode();
+                if (curNode.order == 0 && _checkptsPassed > 1)
                 {
-                    _curRaceNode = _checkpoints[0];
-                    _checkptsPassed = 0;
-                }
-                else
-                {
-                    RaceNode curNode = _curRaceNode;
-                    RaceNode nextNode = _curRaceNode.next;
-                    if (nextNode != null &&
-                        Vectors.Distance(Car.Veh.Physics.Position, nextNode.pt) < Vectors.Distance(curNode.pt, nextNode.pt))
-                    {
-                        switchToNextNode();
-                        if (curNode.order == 0 && _checkptsPassed > 1)
-                        {
-                            //OnLapComplete(index);
-                        }
-                    }
+                    //OnLapComplete(index);
                 }
             }
         }
 
-        public void switchToNextNode()
+        public void SwitchToNextNode()
         {
             _checkptsPassed++;
             _curRaceNode = _curRaceNode.next;

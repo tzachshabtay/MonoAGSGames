@@ -165,6 +165,20 @@ namespace LastAndFurious
             syncObject();
         }
 
+        /// <summary>
+        /// Tests if the car collides with the given region
+        /// </summary>
+        /// <returns></returns>
+        public bool TestCollide(Vecregion r)
+        {
+            foreach (var pt in collPoint)
+            {
+                if (r.IsInside(pt))
+                    return true;
+            }
+            return false;
+        }
+
         protected void resetBase(Track track, Vector2 pos, Vector2 dir)
         {
             _track = track;
