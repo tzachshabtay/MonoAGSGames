@@ -72,6 +72,8 @@ namespace LastAndFurious
         {
             clearRace();
 
+            RaceUI.Clear();
+
             _camera = null;
             _aiRegionBased = null;
             _aiPathBased = null;
@@ -127,6 +129,8 @@ namespace LastAndFurious
             FadeOut(0);
             StopAllAudio();
             */
+
+            RaceUI.Init(_game);
 
             RaceEventConfig cfg = GameMenu.RaceConfig;
             cfg.PlayerDriver = -1; // no player
@@ -188,22 +192,13 @@ namespace LastAndFurious
             {
                 TestLapComplete();
             }
-
+            */
             
 
-            if (gRaceOverlay.Visible)
-            {
-                if (gRaceOverlay.X < 0)
-                {
-                    gRaceOverlay.X = gRaceOverlay.X + 8;
-                }
-                else if (gRaceOverlay.X > 0)
-                {
-                    gRaceOverlay.X = 0;
-                }
-                DrawRaceOverlay(false);
-            }
+            if (RaceUI.IsShown)
+                RaceUI.Update();
 
+            /*
             if (RaceEndSequence > 0)
             {
                 RunEndSequence();
@@ -245,13 +240,8 @@ namespace LastAndFurious
 
         private void clearRace()
         {
-            /* TODO:
-            gRaceOverlay.Visible = false;
-            gRaceOverlay.BackgroundGraphic = 0;
-            gRaceOverlay.Transparency = 0;
-            if (RaceOverlay != null)
-                RaceOverlay.Delete();
-            */
+            RaceUI.Hide();
+
             if (_tChangeAICamera != null)
                 _tChangeAICamera.Dispose();
             _tChangeAICamera = null;
@@ -281,7 +271,7 @@ namespace LastAndFurious
                 _tChangeAICamera = null;
             }
 
-            _cameraTarget = _race.PlayerCar.O;
+            _cameraTarget = _race.Player.Car.O;
             _camera.TargettingAcceleration = 0f;
             if (snap)
                 _camera.Snap();
@@ -368,19 +358,12 @@ namespace LastAndFurious
         {
             for (int i = 0; i < drivers.Count; ++i)
             {
-                VehicleObject car;
+                Racer racer;
                 if (drivers[i] == playerDriver)
-                {
-                    car = _race.AddRacingCar(drivers[i], new VehiclePlayerUI(_game));
-                    car.Veh.Physics.StrictCollisions = true;
-                    _race.PlayerCar = car;
-                }
+                    racer = _race.AddPlayer(drivers[i], new VehiclePlayerUI(_game));
                 else
-                {
-                    car = _race.AddRacingCar(drivers[i], _ai.GetVehicleAI());
-                    car.Veh.Physics.StrictCollisions = false;
-                }
-                positionCarOnGrid(car, i);
+                    racer = _race.AddRacer(drivers[i], _ai.GetVehicleAI());
+                positionCarOnGrid(racer.Car, i);
             }
         }
 
@@ -421,12 +404,9 @@ namespace LastAndFurious
             tSequence = null;
             HoldRace = true;
             HoldAI = true;
-
-            RaceOverlay = DynamicSprite.CreateFromExistingSprite(5);
-            DrawRaceOverlay(true);
-            gRaceOverlay.BackgroundGraphic = RaceOverlay.Graphic;
-            gRaceOverlay.Visible = false;
             */
+
+            RaceUI.Show(_race);
             _game.State.Paused = false;
         }
 

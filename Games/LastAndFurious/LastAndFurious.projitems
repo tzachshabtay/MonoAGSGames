@@ -9,6 +9,7 @@
     <Import_RootNamespace>LastAndFurious</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RaceUI.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\AIController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\DriverCharacter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameMenuComponent.cs" />

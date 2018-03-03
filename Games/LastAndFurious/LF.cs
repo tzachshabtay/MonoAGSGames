@@ -51,7 +51,10 @@ namespace LastAndFurious
 
         public static class Fonts
         {
+            // TODO: find out if it's possible to use black font(s), painting letters with gradient
             public static SpriteFont SilverFont;
+            public static SpriteFont AzureItalicFont;
+            public static SpriteFont PurpleItalicFont;
         }
 
         public static class StartMenu
@@ -96,6 +99,13 @@ namespace LastAndFurious
             public static Dictionary<string, IImage> CarModels = new Dictionary<string, IImage>();
             public static Dictionary<string, DriverCharacter> Drivers = new Dictionary<string, DriverCharacter>();
 
+            public static IImage[] RacerFrames;
+            public static IImage BannerReady;
+            public static IImage BannerSet;
+            public static IImage BannerGo;
+            public static IImage BannerLoose;
+            public static IImage BannerWin;
+
             public static async Task LoadAll(IGame game)
             {
                 IGraphicsFactory f = game.Factory.Graphics;
@@ -107,6 +117,15 @@ namespace LastAndFurious
                     IImage portrait = await f.LoadImageAsync(string.Format("{0}face{1}.png", UIAssetFolder, i + 1), MagicColor.TopLeftPixel);
                     Drivers.Add(name, new DriverCharacter(name, portrait, carmodel, 90.0F));
                 }
+
+                RacerFrames = new IImage[Race.MAX_RACING_CARS];
+                for (int i = 0; i < Race.MAX_RACING_CARS; ++i)
+                    RacerFrames[i] = await f.LoadImageAsync($"{UIAssetFolder}racerframe{i + 1}.png", MagicColor.TopLeftPixel);
+                BannerReady = await f.LoadImageAsync(UIAssetFolder + "banner1.png", MagicColor.TopLeftPixel);
+                BannerSet = await f.LoadImageAsync(UIAssetFolder + "banner2.png", MagicColor.TopLeftPixel);
+                BannerGo = await f.LoadImageAsync(UIAssetFolder + "banner3.png", MagicColor.TopLeftPixel);
+                BannerLoose = await f.LoadImageAsync(UIAssetFolder + "banner4.png", MagicColor.TopLeftPixel);
+                BannerWin = await f.LoadImageAsync(UIAssetFolder + "banner5.png", MagicColor.TopLeftPixel);
             }
         }
 

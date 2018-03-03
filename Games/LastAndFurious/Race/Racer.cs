@@ -8,7 +8,7 @@ namespace LastAndFurious
     public class Racer
     {
         DriverCharacter _driver;
-        VehicleBehavior _car;
+        VehicleObject _car;
         float _time; // total racing time
 
         /// <summary>
@@ -18,7 +18,7 @@ namespace LastAndFurious
         /// <summary>
         /// Riding car.
         /// </summary>
-        public VehicleBehavior Car { get => _car; }
+        public VehicleObject Car { get => _car; }
         /// <summary>
         /// Current lap this racer is passing.
         /// </summary>
@@ -27,6 +27,10 @@ namespace LastAndFurious
         /// Current position in race.
         /// </summary>
         public int Place { get; set; }
+        /// <summary>
+        /// Personal time.
+        /// </summary>
+        public float Time { get => _time; }
         /// <summary>
         /// Position at which finished. -1 if did not finish yet.
         /// </summary>
@@ -44,7 +48,7 @@ namespace LastAndFurious
         int _checkptsPassed; // number of passed checkpoints
         IList<RaceNode> _checkpoints;
         
-        public Racer(DriverCharacter driver, VehicleBehavior car, IList<RaceNode> checkpoints)
+        public Racer(DriverCharacter driver, VehicleObject car, IList<RaceNode> checkpoints)
         {
             _driver = driver;
             _car = car;
@@ -79,7 +83,7 @@ namespace LastAndFurious
                     RaceNode curNode = _curRaceNode;
                     RaceNode nextNode = _curRaceNode.next;
                     if (nextNode != null &&
-                        Vectors.Distance(Car.Physics.Position, nextNode.pt) < Vectors.Distance(curNode.pt, nextNode.pt))
+                        Vectors.Distance(Car.Veh.Physics.Position, nextNode.pt) < Vectors.Distance(curNode.pt, nextNode.pt))
                     {
                         switchToNextNode();
                         if (curNode.order == 0 && _checkptsPassed > 1)

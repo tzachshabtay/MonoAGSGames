@@ -6,6 +6,8 @@ namespace LastAndFurious
     /// <summary>
     /// VehicleBehavior is a controller component that sets up a vehicle object.
     /// </summary>
+    /// TODO: simplify access to most useful underlying properties, such as position
+    /// IDEA: what if override ITranslate and reroute onto physics component?
     public class VehicleBehavior : AGSComponent
     {
         public VehicleRacer Racer { get; private set; }

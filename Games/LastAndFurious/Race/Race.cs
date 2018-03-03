@@ -29,21 +29,22 @@ namespace LastAndFurious
         List<VehicleObject> _cars = new List<VehicleObject>();
         List<Racer> _racers = new List<Racer>();
 
-        DriverCharacter _playerDriver;
-
         // Rules
         bool _carCollisions;
         int _laps;
         // int _opponents;
+        Racer _player;
 
         // racer indices sorted in the order of their positions
+        // TODO: look into removing _driverPositions and using only _racerPositions instead
         List<int> _driverPositions = new List<int>();
+        List<Racer> _racerPositions = new List<Racer>();
         int _racersFinished;
         
         /// <summary>
         /// The driver character player chosen.
         /// </summary>
-        public DriverCharacter PlayerDriver { get => _playerDriver; }
+        public Racer Player { get => _player; }
         /// <summary>
         /// Number of laps race consists of.
         /// </summary>
@@ -54,10 +55,17 @@ namespace LastAndFurious
         /// </summary>
         public int Opponents { get => _opponents; }
         */
-
-        public VehicleObject PlayerCar { get; set; }
+        
         public IList<VehicleObject> Cars { get => _cars; }
+        /// <summary>
+        /// Unordered list of race participants (in the order of creation)
+        /// </summary>
         public IList<Racer> Racers { get => _racers; }
+        /// <summary>
+        /// Sorted list of race participants, in the order of currentplacement
+        /// </summary>
+        /// TODO: do we actually need two lists?
+        public IList<Racer> RacerPositions { get => _racerPositions; }
         public bool CarCollisions { get => _carCollisions; set => _carCollisions = value; }
 
 
@@ -70,26 +78,26 @@ namespace LastAndFurious
 
         public void Clear()
         {
-            PlayerCar = new VehicleObject();
             foreach (var c in _cars)
                 _room.Objects.Remove(c.O);
             _cars.Clear();
 
             _racers.Clear();
             _driverPositions.Clear();
+            _racerPositions.Clear();
 
-            _playerDriver = null;
+            _player = null;
             //_opponents = 0;
             _laps = 0;
             _racersFinished = 0;
         }
 
-        public VehicleObject AddRacingCar(DriverCharacter c, VehicleControl control = null)
+        public Racer AddRacer(DriverCharacter c, VehicleControl control = null)
         {
             IObject o = _game.Factory.Object.GetObject(c.Name + "_car");
             VehicleBehavior beh = new VehicleBehavior();
             if (!o.AddComponent<VehicleBehavior>(beh))
-                return new VehicleObject();
+                return null;
             if (control != null)
                 o.AddComponent<VehicleControl>(control);
 
@@ -101,9 +109,19 @@ namespace LastAndFurious
             _room.Objects.Add(o);
 
             _driverPositions.Add(-1);
-            _racers.Add(new Racer(c, beh, _track.Checkpoints));
+            _racerPositions.Add(null);
+            VehicleObject car = new VehicleObject(beh, o);
+            Racer racer = new Racer(c, car, _track.Checkpoints);
+            _racers.Add(racer);
+            return racer;
+        }
 
-            return new VehicleObject(beh, o);
+        public Racer AddPlayer(DriverCharacter c, VehicleControl control = null)
+        {
+            Racer racer = AddRacer(c, control);
+            racer.Car.Veh.Physics.StrictCollisions = true;
+            _player = racer;
+            return racer;
         }
 
         public void Run(float deltaTime)
@@ -163,7 +181,8 @@ namespace LastAndFurious
             for (int i = 0; i < _driverPositions.Count; ++i)
             {
                 int racer = _driverPositions[i];
-                Racers[racer].Place = i;
+                _racers[racer].Place = i;
+                _racerPositions[i] = _racers[racer];
             }
         }
 
@@ -200,8 +219,8 @@ namespace LastAndFurious
                 return true;
             if (racer1.CheckpointsPassed > racer2.CheckpointsPassed)
                 return false;
-            return Vectors.Distance(racer1.Car.Physics.Position, racer1.CurrentCheckpoint.pt) >
-                    Vectors.Distance(racer2.Car.Physics.Position, racer2.CurrentCheckpoint.pt);
+            return Vectors.Distance(racer1.Car.Veh.Physics.Position, racer1.CurrentCheckpoint.pt) >
+                    Vectors.Distance(racer2.Car.Veh.Physics.Position, racer2.CurrentCheckpoint.pt);
         }
 
         private void runVeh2VehCollision()
