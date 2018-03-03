@@ -9,12 +9,14 @@
     <Import_RootNamespace>LastAndFurious</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RaceUI.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\AIController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\DriverCharacter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameMenuComponent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameStarter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameMenu.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Race\Racer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\TrackConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\TrackLoader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UserConfig.cs" />

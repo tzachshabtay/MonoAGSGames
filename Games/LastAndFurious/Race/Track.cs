@@ -42,14 +42,29 @@ namespace LastAndFurious
         }
     }
 
-    public class PathNode
+    /// <summary>
+    /// Race track checkpoints.
+    /// Used to detect car placement and cheaters.
+    /// </summary>
+    public class RaceNode
+    {
+        public Vector2 pt;
+        public int order;
+        public RaceNode prev;
+        public RaceNode next;
+    };
+
+    /// <summary>
+    /// Helps with AI pathfinding.
+    /// </summary>
+    public class AIPathNode
     {
         public Vector2 pt;
         public float radius; // radius at which vehicle may "check in" this node
         public float threshold; // radius at which vehicle may stop turning towards center of the node
         public float speed; // recommended speed after this node (< 0 means any speed)
-        public PathNode prev;
-        public PathNode next;
+        public AIPathNode prev;
+        public AIPathNode next;
     };
 
     /// <summary>
@@ -60,7 +75,7 @@ namespace LastAndFurious
         public IBitmap AIRegionMask { get; set; }
         public Dictionary<Color, float> AIRegionAngles { get; set; }
 
-        public List<PathNode> AIPathNodes { get; set; }
+        public List<AIPathNode> AIPathNodes { get; set; }
     }
 
     /// <summary>
@@ -75,6 +90,7 @@ namespace LastAndFurious
         Dictionary<Color, int> _regionColorMap;
         TrackRegion _nullRegion; // return for safety from GetRegionAt
         TrackRegion[] _regions;
+        List<RaceNode> _checkpoints;
 
         // Supported AI data
         TrackAIData _aiData;
@@ -82,6 +98,7 @@ namespace LastAndFurious
 
         public IImage Background { get => _background; }
         public TrackRegion[] Regions { get => _regions; }
+        public IList<RaceNode> Checkpoints { get => _checkpoints; }
         public TrackAIData AiData { get => _aiData; }
 
         /// Get/set track's gravity (default is 9.807)
@@ -91,18 +108,20 @@ namespace LastAndFurious
         public float AirResistance { get; set; }
         
 
-        public Track(IImage background, int regionCount, int[,] regionMap, TrackAIData aiData)
+        public Track(IImage background, int regionCount, int[,] regionMap,
+            List<RaceNode> checkpoints, TrackAIData aiData)
         {
-            init(background, regionCount, aiData);
+            init(background, regionCount, checkpoints, aiData);
             
             _regionMap = regionMap;
             _regionMapSize = new int[2] { regionMap.GetLength(0), _regionMap.GetLength(1) };
         }
 
         // TODO: temporary solution, remove later
-        public Track(IImage background, int regionCount, IBitmap regionMask, Dictionary<Color, int> regionColorMap, TrackAIData aiData)
+        public Track(IImage background, int regionCount, IBitmap regionMask, Dictionary<Color, int> regionColorMap,
+            List<RaceNode> checkpoints, TrackAIData aiData)
         {
-            init(background, regionCount, aiData);
+            init(background, regionCount, checkpoints, aiData);
 
             _background = background;
             _regionMask = regionMask;
@@ -110,7 +129,7 @@ namespace LastAndFurious
             _regionMapSize = new int[2] { _regionMask.Width, _regionMask.Height };
         }
 
-        private void init(IImage background, int regionCount, TrackAIData aiData)
+        private void init(IImage background, int regionCount, List<RaceNode> checkpoints, TrackAIData aiData)
         {
             _background = background;
 
@@ -118,6 +137,8 @@ namespace LastAndFurious
             for (int i = 0; i < regionCount; ++i)
                 _regions[i] = new TrackRegion(i);
             _nullRegion = new TrackRegion(-1);
+
+            _checkpoints = checkpoints;
 
             Gravity = 9.807F;
             AirResistance = 0.01F;

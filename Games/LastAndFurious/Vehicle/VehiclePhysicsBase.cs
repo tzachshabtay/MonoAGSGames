@@ -91,7 +91,6 @@ namespace LastAndFurious
             {
                 _object = o;
             }
-            _game.Events.OnRepeatedlyExecute.Subscribe(repExec);
         }
 
         /// <summary>
@@ -164,15 +163,6 @@ namespace LastAndFurious
             runPhysicsBase(deltaTime);
             updateBody();
             syncObject();
-        }
-
-        protected void repExec()
-        {
-            if (LF.GameState.Paused)
-                return;
-            // TODO: get delta time from one API, using more precise calculation
-            float delta_time = (float)(1.0 / AGSGame.UPDATE_RATE);
-            Run(delta_time);
         }
 
         protected void resetBase(Track track, Vector2 pos, Vector2 dir)

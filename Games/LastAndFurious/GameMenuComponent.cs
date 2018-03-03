@@ -78,7 +78,6 @@ namespace LastAndFurious
         private IInObjectTreeComponent _tree;
         private IDrawableInfoComponent _drawable;
         private readonly IGLUtils _glUtils;
-        private IVisibleComponent _visible;
 
         // TODO: use Binding List and expose Items in class API?
         // TODO: use actual labels when custom or bitmap fonts are supported
@@ -151,7 +150,6 @@ namespace LastAndFurious
             base.Init(entity);
             entity.Bind<IInObjectTreeComponent>(c => { _tree = c; _tree.TreeNode.AddChild(_selector); _selector.Z = 1; }, _ => _tree = null);
             entity.Bind<IDrawableInfoComponent>(c => { _drawable = c; _selector.RenderLayer = _drawable.RenderLayer; _selector.IgnoreViewport = true; }, _ => _drawable = null);
-            entity.Bind<IVisibleComponent>(c => _visible = c, _ => _visible = null);
         }
 
         public override void Dispose()

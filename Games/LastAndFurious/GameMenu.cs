@@ -153,10 +153,11 @@ namespace LastAndFurious
             _game.Input.KeyDown.Unsubscribe(onKeyDown);
         }
 
-        public static void Dispose()
+        public static void Clear()
         {
             if (_menuObject == null)
                 return;
+
             HideMenu();
             _game.State.UI.Remove(_menuObject);
             _menuObject.Dispose();
@@ -384,7 +385,7 @@ namespace LastAndFurious
 
         private static async void onStart()
         {
-            Dispose();
+            Clear();
             await LF.RaceAssets.LoadAll(_game);
             await LF.RaceMenu.LoadAll(_game);
             await LF.Rooms.RaceRoom.GotoAsync();

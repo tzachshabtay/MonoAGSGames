@@ -11,23 +11,29 @@ namespace LastAndFurious
         private SizeF _size;
         private readonly IGLUtils _glUtils;
 
+        private SizeF calcSize()
+        {
+            return _text != null && _font != null ?
+                new SizeF(_font.GetTextWidth(_text), _font.Height) : new SizeF();
+        }
+
         public SpriteFont Font
         {
             get => _font;
-            set { _font = value; _size = new SizeF(_font.GetTextWidth(_text), _font.Height); }
+            set { _font = value; _size = calcSize(); }
         }
 
         public string Text
         {
             get => _text;
-            set { _text = value; _size = new SizeF(_font.GetTextWidth(_text), _font.Height); }
+            set { _text = value; _size = calcSize(); }
         }
 
         public SpriteFontRenderer(SpriteFont font, string text, IGLUtils glUtils)
         {
             _font = font;
             _text = text;
-            _size = new SizeF(font.GetTextWidth(text), font.Height);
+            _size = calcSize();
             
             _glUtils = glUtils;
         }
@@ -42,7 +48,8 @@ namespace LastAndFurious
 
         public void Render(IObject obj, IViewport viewport)
         {
-            if (!obj.Visible) return;
+            if (!obj.Visible || _text == null || _font == null)
+                return;
 
             // TODO: find out how to setup proper RenderBox for the custom object
             var bottomLeft = obj.GetBoundingBoxes(viewport).RenderBox.BottomLeft;

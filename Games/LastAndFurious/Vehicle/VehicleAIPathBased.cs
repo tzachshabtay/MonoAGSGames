@@ -6,16 +6,16 @@ namespace LastAndFurious
 {
     public class VehicleAIPathBased : VehicleControl
     {
-        List<PathNode> _pathNodes;
+        List<AIPathNode> _pathNodes;
         bool _targetValid;
         Vector2 _targetPos;
         Vector2 _targetDir;
         float _targetCheckRadius;
         float _targetThreshold;
         float _targetSpeedHint;
-        PathNode _currentNode;
+        AIPathNode _currentNode;
 
-        public VehicleAIPathBased(IGame game, List<PathNode> pathNodes)
+        public VehicleAIPathBased(IGame game, List<AIPathNode> pathNodes)
             : base(game)
         {
             _pathNodes = pathNodes;
@@ -29,8 +29,8 @@ namespace LastAndFurious
             // Choose next path node if inside the check radius for current one, or closer to next one.
             if (_currentNode != null)
             {
-                PathNode prevNode = _currentNode.prev;
-                PathNode nextNode = _currentNode.next;
+                AIPathNode prevNode = _currentNode.prev;
+                AIPathNode nextNode = _currentNode.next;
                 if (nextNode != null &&
                     (prevNode == null || Vectors.Distance(_veh.Position, prevNode.pt) > Vectors.Distance(_currentNode.pt, prevNode.pt)) &&
                     Vectors.Distance(_veh.Position, nextNode.pt) < Vectors.Distance(_currentNode.pt, nextNode.pt))

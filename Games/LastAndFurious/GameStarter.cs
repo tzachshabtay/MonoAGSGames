@@ -35,6 +35,13 @@ namespace LastAndFurious
         {
             IGraphicsFactory f = game.Factory.Graphics;
 
+            // Cyan and pink italic fonts, used for generic purposes
+            var fontImage = f.LoadImage(LF.FontAssetFolder + "font-italic-cyan.png", LF.MagicColor.TopLeftPixel);
+            LF.Fonts.AzureItalicFont = SpriteFont.CreateFromBitmap(fontImage.OriginalBitmap, f, 13, 13, 0, 0, 126, null, null);
+
+            fontImage = f.LoadImage(LF.FontAssetFolder + "font-italic-cyan.png", LF.MagicColor.TopLeftPixel);
+            LF.Fonts.PurpleItalicFont = SpriteFont.CreateFromBitmap(fontImage.OriginalBitmap, f, 13, 13, 0, 0, 126, null, null);
+
             // Silver 'Racer' font
             int last = 126;
             int total = last + 1;
@@ -72,7 +79,7 @@ namespace LastAndFurious
             widths[';'] -= 18 - 4;
             widths['|'] -= 18 - 4;
 
-            var fontImage = f.LoadImage(LF.FontAssetFolder + "font-racer-silver.png", LF.MagicColor.TopLeftPixel);
+            fontImage = f.LoadImage(LF.FontAssetFolder + "font-racer-silver.png", LF.MagicColor.TopLeftPixel);
             LF.Fonts.SilverFont = SpriteFont.CreateFromBitmap(fontImage.OriginalBitmap, f, 32, 34, 24, 0, last, offs, widths);
         }
 
