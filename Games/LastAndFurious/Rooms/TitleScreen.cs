@@ -56,7 +56,7 @@ namespace LastAndFurious
 
         private void onAfterFadeIn()
         {
-            //_music.Play(true);
+            _music.Play(true);
         }
 
         private void onLeave()

@@ -1,4 +1,5 @@
-﻿using AGS.Engine.Desktop;
+﻿using System;
+using AGS.Engine.Desktop;
 
 namespace LastAndFurious.Desktop
 {
@@ -12,7 +13,8 @@ namespace LastAndFurious.Desktop
                 asset_path = args[0];
 
             AGSEngineDesktop.Init();
-            GameStarter.Run(asset_path);
+            GameStarter.Run(asset_path,
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/Last & Furious/");
         }
     }
 }

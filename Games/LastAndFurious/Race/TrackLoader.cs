@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using AGS.API;
 using IniParser;
@@ -57,14 +58,16 @@ namespace LastAndFurious
 
             return new Track(background, regionColors.Count, regionMap);
             */
-            TrackAIData aiData = await LoadAIData(assetpath, f);
+            Size trackSize = mask != null ? new Size(mask.Width, mask.Height) : new Size();
+            TrackAIData aiData = await LoadAIData(assetpath, trackSize, f);
             return new Track(background, regionColors.Count, mask, regionColors, aiData);
         }
 
-        private static async Task<TrackAIData> LoadAIData(string assetpath, IGraphicsFactory f)
+        private static async Task<TrackAIData> LoadAIData(string assetpath, Size trackSize, IGraphicsFactory f)
         {
             TrackAIData data = new TrackAIData();
             await LoadAIRegionsData(data, assetpath, f);
+            LoadAIPathsData(data, assetpath, trackSize);
             return data;
         }
 
@@ -98,6 +101,51 @@ namespace LastAndFurious
             data.AIRegionMask = regionMask;
             data.AIRegionAngles = regionAngles;
             return;
+        }
+
+        // TODO: separate loading for data edited by MonoAGS version
+        private static void LoadAIPathsData(TrackAIData data, string assetpath, Size trackSize)
+        {
+            Stream s = File.OpenRead(assetpath + "aipaths.dat");
+            if (s == null)
+                return;
+
+            List<PathNode> paths = new List<PathNode>();
+            AGSFileReader f = new AGSFileReader(s);
+            int firstNodeIndex = f.ReadInt();
+            int lastNodeIndex = f.ReadInt();
+            int n = firstNodeIndex;
+            PathNode last = null;
+            do
+            {
+                int x = f.ReadInt();
+                int y = f.ReadInt();
+                // NOTE: since MonoAGS has Y axis pointing up, we need to invert one read from AGS file
+                y = trackSize.Height - y;
+                PathNode node = new PathNode();
+                node.pt = new Vector2(x, y);
+                node.radius = f.ReadInt();
+                node.threshold = f.ReadInt();
+                node.speed = f.ReadInt();
+                int p = f.ReadInt();
+                n = f.ReadInt();
+                if (last != null)
+                {
+                    node.prev = last;
+                    last.next = node;
+                }
+                last = node;
+                paths.Add(node);
+            }
+            while (n != firstNodeIndex);
+            // Bind last node to the first one
+            if (last != null)
+            {
+                last.next = paths[0];
+                paths[0].prev = last;
+            }
+
+            data.AIPathNodes = paths;
         }
     }
 }

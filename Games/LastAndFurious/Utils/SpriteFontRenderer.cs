@@ -3,12 +3,25 @@ using AGS.Engine;
 
 namespace LastAndFurious
 {
+    // TODO: should be a component implementing IRenderer, not custom renderer class
     public class SpriteFontRenderer : IImageRenderer
     {
-        private readonly SpriteFont _font;
-        private readonly string _text;
-        private readonly SizeF _size;
+        private SpriteFont _font;
+        private string _text;
+        private SizeF _size;
         private readonly IGLUtils _glUtils;
+
+        public SpriteFont Font
+        {
+            get => _font;
+            set { _font = value; _size = new SizeF(_font.GetTextWidth(_text), _font.Height); }
+        }
+
+        public string Text
+        {
+            get => _text;
+            set { _text = value; _size = new SizeF(_font.GetTextWidth(_text), _font.Height); }
+        }
 
         public SpriteFontRenderer(SpriteFont font, string text, IGLUtils glUtils)
         {
@@ -31,11 +44,13 @@ namespace LastAndFurious
         {
             if (!obj.Visible) return;
 
+            // TODO: find out how to setup proper RenderBox for the custom object
             var bottomLeft = obj.GetBoundingBoxes(viewport).RenderBox.BottomLeft;
             var x = bottomLeft.X;
             var y = bottomLeft.Y - _size.Height;
 
             // TODO: aligned (e.g. centered) draw
+            // TODO: probably move drawtext out of SpriteFont to SpriteFontRenderer?
             _font.DrawText(_text, _glUtils, new Vector2(x, y));
 
             if (obj.DebugDrawPivot)

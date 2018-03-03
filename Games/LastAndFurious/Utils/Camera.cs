@@ -7,6 +7,7 @@ namespace LastAndFurious
     {
         private float _targettingAcceleration;
         private float _speedX, _speedY, _speedScaleX, _speedScaleY;
+        private IObject _oldTarget;
         private float _oldTargetX, _oldTargetY;
         private bool _doSnap;
 
@@ -44,7 +45,10 @@ namespace LastAndFurious
         {
             IObject target = Target == null ? null : Target();
             if (!Enabled || target == null)
+            {
+                _oldTarget = null;
                 return;
+            }
 
             setScale(target, viewport, resetPosition);
 
@@ -65,8 +69,9 @@ namespace LastAndFurious
 
             float newX, newY;
             if (_doSnap ||
-                MathUtils.FloatEquals(viewport.X, _oldTargetX) && MathUtils.FloatEquals(viewport.Y, _oldTargetY) ||
-                MathUtils.FloatEquals(_targettingAcceleration, 0.0F))
+                _oldTarget == target &&
+                (MathUtils.FloatEquals(viewport.X, _oldTargetX) && MathUtils.FloatEquals(viewport.Y, _oldTargetY) ||
+                MathUtils.FloatEquals(_targettingAcceleration, 0.0F)))
             {
                 // Already snapped to target, or no acceleration, - directly snap to the target
                 newX = targetX;
@@ -77,6 +82,7 @@ namespace LastAndFurious
                 doMove(viewport, targetX, targetY, _targettingAcceleration, out newX, out newY);
             }
 
+            _oldTarget = target;
             _oldTargetX = targetX;
             _oldTargetY = targetY;
             _doSnap = false;

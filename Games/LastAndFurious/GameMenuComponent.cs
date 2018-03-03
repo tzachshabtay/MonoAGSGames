@@ -30,7 +30,8 @@ namespace LastAndFurious
         /// </summary>
         public IEvent OnScrollRight { get; private set; }
 
-        public IObject SubItem { get; set; }
+        // TODO: make a proper subitem tree?
+        public IList<IObject> SubItems { get; private set; }
 
         public MenuItem(string text, Action onConfirm = null, Action onScrollLeft = null, Action onScrollRight = null)
         {
@@ -42,6 +43,13 @@ namespace LastAndFurious
             if (onConfirm != null) OnConfirm.Subscribe(onConfirm);
             if (onScrollLeft != null) OnScrollLeft.Subscribe(onScrollLeft);
             if (onScrollRight != null) OnScrollRight.Subscribe(onScrollRight);
+        }
+
+        public void AddSubItem(IObject o)
+        {
+            if (SubItems == null)
+                SubItems = new List<IObject>();
+            SubItems.Add(o);
         }
     }
 
@@ -164,14 +172,14 @@ namespace LastAndFurious
         {
             MenuItem item = new MenuItem(text, onConfirm, onScrollLeft, onScrollRight);
             float y = _items.Count * -OptionSpacing;
-            IObject label = setupItem(string.Format("GameMenuItem{0}", _items.Count), text, 0f, y);
+            IObject label = setupItem(string.Format("GameMenuItem{0}", _items.Count), text, null, 0f, y, -2);
             _items.Add(new MenuObject(item, label));
 
             if (Selection < 0)
                 Selection = 0;
         }
 
-        private IObject setupItem(string id, string text, float x, float y)
+        private IObject setupItem(string id, string text, IImage image, float x, float y, float z)
         {
             IObject label = _game.Factory.Object.GetObject(id);
             _game.State.UI.Add(label);
@@ -185,9 +193,11 @@ namespace LastAndFurious
             //label.DebugDrawPivot = true;
             label.X = x;
             label.Y = y;
-            label.Z = -2;
-            var image = CreateItemImage(text);
-            label.CustomRenderer = image;
+            label.Z = z;
+            if (text != null)
+                label.CustomRenderer = CreateItemImage(text);
+            else
+                label.Image = image;
             return label;
         }
 
@@ -196,18 +206,50 @@ namespace LastAndFurious
         /// </summary>
         /// <param name="itemIndex">A zero-based index of the parent item</param>
         /// <param name="text">Subitem's text</param>
-        public void SetSubItem(int itemIndex, string text)
+        public void SetSubItem(int itemIndex, int subIndex, string text)
         {
             var item = _items[itemIndex];
-            if (item.Item.SubItem == null)
+            if (item.Item.SubItems == null || subIndex >= item.Item.SubItems.Count)
             {
-                IObject label = setupItem(string.Format("GameMenuItem{0}_subitem", itemIndex), text, OptionValueX, item.Label.Y);
-                item.Item.SubItem = label;
+                IObject label = setupItem(string.Format("GameMenuItem{0}_subitem{1}", itemIndex, subIndex),
+                    text, null, OptionValueX, item.Label.Y, -2);
+                item.Item.AddSubItem(label);
             }
             else
             {
-                var image = CreateItemImage(text);
-                item.Item.SubItem.CustomRenderer = image;
+                // TODO: rewrite this hardcoded mess!
+                IObject subitem = item.Item.SubItems[subIndex];
+                subitem.Image = null;
+                var image = subitem.CustomRenderer as SpriteFontRenderer;
+                image.Text = text;
+            }
+        }
+
+        /// <summary>
+        /// Adds an image to the subitem of a given item. The image will be displayed
+        /// at the desired offset. Multiple images may be added in a sequence.
+        /// </summary>
+        /// <param name="itemIndex"></param>
+        /// <param name="pic"></param>
+        /// <param name="xoff"></param>
+        /// <param name="yoff"></param>
+        public void SetSubItemPic(int itemIndex, int subIndex, IImage image, float xoff, float yoff, float zoff)
+        {
+            var item = _items[itemIndex];
+            if (item.Item.SubItems == null || subIndex >= item.Item.SubItems.Count)
+            {
+                IObject pic = setupItem(string.Format("GameMenuItem{0}_subitem{1}", itemIndex, subIndex),
+                    null, image, OptionValueX + xoff, item.Label.Y + yoff, zoff);
+                item.Item.AddSubItem(pic);
+                pic.Pivot = new PointF(0.5f, 0.5f); // TODO: this is a temp hack, until standard is set
+                //label.DebugDrawPivot = true;
+            }
+            else
+            {
+                // TODO: rewrite this hardcoded mess!
+                IObject subitem = item.Item.SubItems[subIndex];
+                subitem.Image = image;
+                subitem.CustomRenderer = null;
             }
         }
 
@@ -219,15 +261,17 @@ namespace LastAndFurious
             foreach (var tuple in _items)
             {
                 _game.State.UI.Remove(tuple.Label);
-                if (tuple.Item.SubItem != null)
-                    _game.State.UI.Remove(tuple.Item.SubItem);
+                if (tuple.Item.SubItems != null)
+                    foreach (var sub in tuple.Item.SubItems)
+                        _game.State.UI.Remove(sub);
             }
             if (_tree != null)
                 foreach (var tuple in _items)
                 {
                     _tree.TreeNode.RemoveChild(tuple.Label);
-                    if (tuple.Item.SubItem != null)
-                        _tree.TreeNode.RemoveChild(tuple.Item.SubItem);
+                    if (tuple.Item.SubItems != null)
+                        foreach (var sub in tuple.Item.SubItems)
+                            _tree.TreeNode.RemoveChild(sub);
                 }
             _items.Clear();
 

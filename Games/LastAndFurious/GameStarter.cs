@@ -6,9 +6,9 @@ namespace LastAndFurious
     public class GameStarter
     {
         // TODO: proper struct to pass arguments
-        public static void Run(string asset_path)
+        public static void Run(string asset_path, string user_path)
         {
-            LF.Init(asset_path);
+            LF.Init(asset_path, user_path);
             IGame game = AGSGame.CreateEmpty();
 
             game.Events.OnLoad.Subscribe(async () =>
@@ -26,7 +26,7 @@ namespace LastAndFurious
             game.State.RoomTransitions.Transition = AGSRoomTransitions.Instant();
 
             loadFonts(game);
-            loadUI(game);
+            preloadUI(game);
             LF.Rooms.PrecreateAll(game);
             GameMenu.Init(game);
         }
@@ -76,12 +76,10 @@ namespace LastAndFurious
             LF.Fonts.SilverFont = SpriteFont.CreateFromBitmap(fontImage.OriginalBitmap, f, 32, 34, 24, 0, last, offs, widths);
         }
 
-        private static void loadUI(IGame game)
+        private static void preloadUI(IGame game)
         {
             IGraphicsFactory f = game.Factory.Graphics;
             LF.StartMenu.Selector = f.LoadImage(LF.UIAssetFolder + "diamond.png", LF.MagicColor.TopLeftPixel);
-            LF.RaceMenu.Selector = f.LoadImage(LF.UIAssetFolder + "hor.png", LF.MagicColor.TopLeftPixel);
-            LF.RaceMenu.VBar = f.LoadImage(LF.UIAssetFolder + "vert.png", LF.MagicColor.TopLeftPixel);
         }
     }
 }

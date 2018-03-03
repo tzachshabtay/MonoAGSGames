@@ -26,4 +26,21 @@ namespace LastAndFurious
             return new VehicleAIRegionBased(_game, _regionMask, _regionAngles);
         }
     }
+
+    public class AIPathBase : AIController
+    {
+        IGame _game;
+        List<PathNode> _pathNodes;
+
+        public AIPathBase(IGame game, List<PathNode> pathNodes)
+        {
+            _game = game;
+            _pathNodes = pathNodes;
+        }
+
+        public override VehicleControl GetVehicleAI()
+        {
+            return new VehicleAIPathBased(_game, _pathNodes);
+        }
+    }
 }
