@@ -94,8 +94,6 @@ namespace LastAndFurious
             _room.Events.OnBeforeFadeIn.Subscribe(onLoad);
             _room.Events.OnAfterFadeIn.Subscribe(onAfterFadeIn);
             _room.Events.OnAfterFadeOut.Subscribe(onLeave);
-            _game.Events.OnRepeatedlyExecute.Subscribe(repExec);
-            _game.Input.KeyDown.Subscribe(onKeyDown);
 
             _track = await TrackLoader.LoadAsync(_roomAssetFolder + "track01.ini", _roomAssetFolder, _game.Factory.Graphics);
             _race = new Race(_game, _room, _track);
@@ -136,6 +134,9 @@ namespace LastAndFurious
             cfg.Laps = 0; // drive forever
             setupAIRace(cfg);
             _music.Play(true);
+
+            _game.Events.OnRepeatedlyExecute.Subscribe(repExec);
+            _game.Input.KeyDown.Subscribe(onKeyDown);
         }
 
         private void onAfterFadeIn()
@@ -147,6 +148,9 @@ namespace LastAndFurious
 
         private void onLeave()
         {
+            _game.Events.OnRepeatedlyExecute.Unsubscribe(repExec);
+            _game.Input.KeyDown.Unsubscribe(onKeyDown);
+
             clearRace();
             /* TODO:
             StopAllAudio();
@@ -157,6 +161,10 @@ namespace LastAndFurious
         {
             if (LF.GameState.Paused)
                 return;
+
+            // TODO: get delta time from one API, using more precise calculation
+            float deltaTime = (float)(1.0 / AGSGame.UPDATE_RATE);
+
             // TODO: temp, remove/change
             IInput input = _game.Input;
             if (input.IsKeyDown(Key.PageDown))
@@ -176,7 +184,6 @@ namespace LastAndFurious
                 RunStartSequence();
                 return;
             }
-
             if (!IsAIRace)
             {
                 TestLapComplete();
@@ -210,6 +217,8 @@ namespace LastAndFurious
                     gBanner.Visible = false;
             }
             */
+
+            _race.Run(deltaTime);
         }
 
         private void onKeyDown(KeyboardEventArgs args)

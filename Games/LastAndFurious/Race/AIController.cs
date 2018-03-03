@@ -30,9 +30,9 @@ namespace LastAndFurious
     public class AIPathBase : AIController
     {
         IGame _game;
-        List<PathNode> _pathNodes;
+        List<AIPathNode> _pathNodes;
 
-        public AIPathBase(IGame game, List<PathNode> pathNodes)
+        public AIPathBase(IGame game, List<AIPathNode> pathNodes)
         {
             _game = game;
             _pathNodes = pathNodes;

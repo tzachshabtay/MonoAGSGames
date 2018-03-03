@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)LF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameStarter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameMenu.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Race\Racer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\TrackConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\TrackLoader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UserConfig.cs" />

@@ -59,19 +59,62 @@ namespace LastAndFurious
             return new Track(background, regionColors.Count, regionMap);
             */
             Size trackSize = mask != null ? new Size(mask.Width, mask.Height) : new Size();
-            TrackAIData aiData = await LoadAIData(assetpath, trackSize, f);
-            return new Track(background, regionColors.Count, mask, regionColors, aiData);
+            List<RaceNode> checkpoints = loadCheckpoints(assetpath, trackSize);
+
+            TrackAIData aiData = await loadAIData(assetpath, trackSize, f);
+            return new Track(background, regionColors.Count, mask, regionColors, checkpoints, aiData);
         }
 
-        private static async Task<TrackAIData> LoadAIData(string assetpath, Size trackSize, IGraphicsFactory f)
+        private static List<RaceNode> loadCheckpoints(string assetpath, Size trackSize)
+        {
+            Stream s = File.OpenRead(assetpath + "checkpoints.dat");
+            if (s == null)
+                return null;
+
+            List<RaceNode> checkpoints = new List<RaceNode>();
+            AGSFileReader f = new AGSFileReader(s);
+            int firstNodeIndex = f.ReadInt();
+            int lastNodeIndex = f.ReadInt();
+            int n = firstNodeIndex;
+            RaceNode last = null;
+            do
+            {
+                int x = f.ReadInt();
+                int y = f.ReadInt();
+                // NOTE: since MonoAGS has Y axis pointing up, we need to invert one read from AGS file
+                y = trackSize.Height - y;
+                RaceNode node = new RaceNode();
+                node.pt = new Vector2(x, y);
+                int p = f.ReadInt();
+                n = f.ReadInt();
+                if (last != null)
+                {
+                    node.prev = last;
+                    last.next = node;
+                }
+                last = node;
+                checkpoints.Add(node);
+            }
+            while (n != firstNodeIndex);
+            // Bind last node to the first one
+            if (last != null)
+            {
+                last.next = checkpoints[0];
+                checkpoints[0].prev = last;
+            }
+
+            return checkpoints;
+        }
+
+        private static async Task<TrackAIData> loadAIData(string assetpath, Size trackSize, IGraphicsFactory f)
         {
             TrackAIData data = new TrackAIData();
-            await LoadAIRegionsData(data, assetpath, f);
-            LoadAIPathsData(data, assetpath, trackSize);
+            await loadAIRegionsData(data, assetpath, f);
+            loadAIPathsData(data, assetpath, trackSize);
             return data;
         }
 
-        private static async Task LoadAIRegionsData(TrackAIData data, string assetpath, IGraphicsFactory f)
+        private static async Task loadAIRegionsData(TrackAIData data, string assetpath, IGraphicsFactory f)
         {
             IBitmap regionMask = await f.LoadBitmapAsync(assetpath + "airegions.bmp");
             if (regionMask == null)
@@ -104,25 +147,25 @@ namespace LastAndFurious
         }
 
         // TODO: separate loading for data edited by MonoAGS version
-        private static void LoadAIPathsData(TrackAIData data, string assetpath, Size trackSize)
+        private static void loadAIPathsData(TrackAIData data, string assetpath, Size trackSize)
         {
             Stream s = File.OpenRead(assetpath + "aipaths.dat");
             if (s == null)
                 return;
 
-            List<PathNode> paths = new List<PathNode>();
+            List<AIPathNode> paths = new List<AIPathNode>();
             AGSFileReader f = new AGSFileReader(s);
             int firstNodeIndex = f.ReadInt();
             int lastNodeIndex = f.ReadInt();
             int n = firstNodeIndex;
-            PathNode last = null;
+            AIPathNode last = null;
             do
             {
                 int x = f.ReadInt();
                 int y = f.ReadInt();
                 // NOTE: since MonoAGS has Y axis pointing up, we need to invert one read from AGS file
                 y = trackSize.Height - y;
-                PathNode node = new PathNode();
+                AIPathNode node = new AIPathNode();
                 node.pt = new Vector2(x, y);
                 node.radius = f.ReadInt();
                 node.threshold = f.ReadInt();
