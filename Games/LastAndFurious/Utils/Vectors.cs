@@ -5,6 +5,27 @@ using AGS.Engine;
 namespace LastAndFurious
 {
     /// <summary>
+    /// Helper struct, depicts a 2D region defined by the two points.
+    /// </summary>
+    /// TODO: find a substitution in the engine's API.
+    public struct Vecregion
+    {
+        public Vector2 P1;
+        public Vector2 P2;
+
+        public Vecregion(Vector2 p1, Vector2 p2)
+        {
+            P1 = p1;
+            P2 = p2;
+        }
+
+        public bool IsInside(Vector2 p)
+        {
+            return p.X >= P1.X && p.X <= P2.X && p.Y >= P1.Y && p.Y <= P2.Y;
+        }
+    }
+
+    /// <summary>
     /// Two-dimensional vector algebra, implemented as an extension to Vector2 struct.
     /// </summary>
     /// TODO: search for ways to optimize the calculations.

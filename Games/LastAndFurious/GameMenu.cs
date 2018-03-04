@@ -221,7 +221,7 @@ namespace LastAndFurious
                     {
                         IPanel panel = _game.Factory.UI.GetPanel("GameMenuUnderlay", rx, ry, -GAMEMENU_OPTION_X, -_menuObject.Y);
                         _menuObject.TreeNode.AddChild(panel);
-                        panel.Tint = Color.FromArgb(255 - 70, 72, 20, 0);
+                        panel.Tint = Color.FromArgb(30 * 255 / 100, 72, 20, 0);
                         panel.Z = 20;
                         _underlay = panel;
                     }
