@@ -57,12 +57,15 @@ namespace LastAndFurious
             public static SpriteFont PurpleItalicFont;
         }
 
-        public static class StartMenu
+        // TODO: make non-static object, or even multiple objects for different menu types
+        public static GameMenu Menu;
+
+        public static class StartMenuAssets
         {
             public static IImage Selector;
         }
 
-        public static class RaceMenu
+        public static class RaceMenuAssets
         {
             public static IImage Selector;
             public static IImage VBar;

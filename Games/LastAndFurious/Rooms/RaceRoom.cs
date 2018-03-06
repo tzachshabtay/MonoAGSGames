@@ -60,7 +60,7 @@ namespace LastAndFurious
 
         public void StartSinglePlayer(RaceEventConfig eventCfg)
         {
-            GameMenu.HideMenu();
+            LF.Menu.HideMenu();
             // FadeOut(50); TODO
             setupSinglePlayerRace(eventCfg);
             // FadeIn(50); TODO
@@ -69,7 +69,7 @@ namespace LastAndFurious
 
         public void StartAIDemo(RaceEventConfig eventCfg)
         {
-            GameMenu.HideMenu();
+            LF.Menu.HideMenu();
             // FadeOut(50); TODO
             setupAIRace(eventCfg);
             // FadeIn(50); TODO
@@ -143,7 +143,7 @@ namespace LastAndFurious
 
             RaceUI.Init(_game);
 
-            RaceEventConfig cfg = GameMenu.RaceConfig;
+            RaceEventConfig cfg = LF.Menu.RaceConfig;
             cfg.PlayerDriver = -1; // no player
             cfg.Opponents = LF.RaceAssets.Drivers.Count; // max drivers
             cfg.Laps = 0; // drive forever
@@ -209,15 +209,15 @@ namespace LastAndFurious
                 return;
 
             // TODO: a way to lock input focus?
-            if (!GameMenu.IsShown && (_isAIRace || args.Key == Key.Escape))
+            if (!LF.Menu.IsShown && (_isAIRace || args.Key == Key.Escape))
             {
                 // TODO: need to have resume callback from menu
                 //if (_raceStartSequence > 0 && _bannerTween != null)
                   //  _bannerTween.Pause();
                 if (_isAIRace)
-                    GameMenu.ShowMenu(MenuClass.eMenuMain, false);
+                    LF.Menu.ShowMenu(MenuClass.eMenuMain, false);
                 else
-                    GameMenu.ShowMenu(MenuClass.eMenuMainInGame, true);
+                    LF.Menu.ShowMenu(MenuClass.eMenuMainInGame, true);
 
                 // ClaimEvent();
             }
