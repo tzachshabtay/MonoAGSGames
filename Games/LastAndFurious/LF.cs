@@ -131,12 +131,5 @@ namespace LastAndFurious
                 BannerWin = await f.LoadImageAsync(UIAssetFolder + "banner5.png", MagicColor.TopLeftPixel);
             }
         }
-
-        // TODO: had to do this, because engine's GameState.Paused blocks literally all update,
-        // including input events.
-        public static class GameState
-        {
-            public static bool Paused { get; set; }
-        }
     }
 }

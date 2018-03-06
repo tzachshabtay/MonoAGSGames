@@ -24,7 +24,7 @@ namespace LastAndFurious
         }
     }
 
-    public class RaceRoom : RoomScript
+    public class RaceRoom : RoomScript, IThisGameState
     {
         private const string ROOM_ID = "RaceRoom";
         private const float CHANGE_AI_CAMERA_TIME = 8000f;
@@ -150,8 +150,7 @@ namespace LastAndFurious
             setupAIRace(cfg);
             _music.Play(true);
 
-            _game.Events.OnRepeatedlyExecute.Subscribe(repExec);
-            _game.Input.KeyDown.Subscribe(onKeyDown);
+            GameStateManager.PushState(this);
         }
 
         private void onAfterFadeIn()
@@ -163,8 +162,7 @@ namespace LastAndFurious
 
         private void onLeave()
         {
-            _game.Events.OnRepeatedlyExecute.Unsubscribe(repExec);
-            _game.Input.KeyDown.Unsubscribe(onKeyDown);
+            GameStateManager.PopState(this);
 
             clearRace();
             /* TODO:
@@ -172,14 +170,10 @@ namespace LastAndFurious
             */
         }
 
-        private void repExec()
+        public bool IsBlocking { get => false; }
+
+        public void RepExec(float deltaTime)
         {
-            if (LF.GameState.Paused)
-                return;
-
-            // TODO: get delta time from one API, using more precise calculation
-            float deltaTime = (float)(1.0 / AGSGame.UPDATE_RATE);
-
             // TODO: temp, remove/change
             IInput input = _game.Input;
             if (input.IsKeyDown(Key.PageDown))
@@ -203,13 +197,9 @@ namespace LastAndFurious
                 RaceUI.Update();
         }
 
-        private void onKeyDown(KeyboardEventArgs args)
+        public bool OnKeyDown(KeyboardEventArgs args)
         {
-            if (LF.GameState.Paused)
-                return;
-
-            // TODO: a way to lock input focus?
-            if (!LF.Menu.IsShown && (_isAIRace || args.Key == Key.Escape))
+            if (_isAIRace || args.Key == Key.Escape)
             {
                 // TODO: need to have resume callback from menu
                 //if (_raceStartSequence > 0 && _bannerTween != null)
@@ -218,9 +208,9 @@ namespace LastAndFurious
                     LF.Menu.ShowMenu(MenuClass.eMenuMain, false);
                 else
                     LF.Menu.ShowMenu(MenuClass.eMenuMainInGame, true);
-
-                // ClaimEvent();
+                return true;
             }
+            return false;
         }
 
         private void _tChangeAICamera_Elapsed(object sender, ElapsedEventArgs e)

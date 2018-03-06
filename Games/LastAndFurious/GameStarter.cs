@@ -29,6 +29,7 @@ namespace LastAndFurious
             preloadUI(game);
             LF.Rooms.PrecreateAll(game);
             LF.Menu = new GameMenu(game);
+            GameStateManager.Init(game);
         }
 
         private static void loadFonts(IGame game)

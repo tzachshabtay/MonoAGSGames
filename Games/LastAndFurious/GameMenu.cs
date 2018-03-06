@@ -25,7 +25,7 @@ namespace LastAndFurious
         public int MusicVolume;
     }
     
-    public class GameMenu
+    public class GameMenu : IThisGameState
     {
         private const int STARTMENU_OPTION_POS_TOP = 303;
         private const int STARTMENU_OPTION_X = 255;
@@ -44,6 +44,7 @@ namespace LastAndFurious
         private MenuClass _prevMenuClass = MenuClass.eMenuNone;
         private IObject _vbar = null;
         private IPanel _underlay = null;
+        private bool _pausedInGame = false;
 
         // TODO: move to game config controller, or something
         private GameConfig _gameCfg;
@@ -99,15 +100,7 @@ namespace LastAndFurious
         {
             _prevMenuClass = _menuClass;
             _menuClass = menuClass;
-
-            if (pausedInGame && !LF.GameState.Paused)
-            {
-                LF.GameState.Paused = true;
-                /* TODO: 
-                gRaceOverlay.Visible = false;
-                gBanner.Visible = false;
-                */
-            }
+            _pausedInGame = pausedInGame;
 
             if (_menuObject == null)
             {
@@ -126,7 +119,7 @@ namespace LastAndFurious
             arrangeMenu();
             _menuObject.Visible = true;
 
-            _game.Input.KeyDown.Subscribe(onKeyDown);
+            GameStateManager.PushState(this);
         }
 
         public void HideMenu()
@@ -140,16 +133,7 @@ namespace LastAndFurious
             _menuClass = MenuClass.eMenuNone;
             _prevMenuClass = MenuClass.eMenuNone;
 
-            if (LF.GameState.Paused)
-            {
-                /* TODO:
-                gRaceOverlay.Visible = true;
-                gBanner.Visible = true;
-                */
-                LF.GameState.Paused = false;
-            }
-
-            _game.Input.KeyDown.Unsubscribe(onKeyDown);
+            GameStateManager.PopState(this);
         }
 
         public void Clear()
@@ -354,10 +338,12 @@ namespace LastAndFurious
 
         private void switchToMenu(MenuClass menu)
         {
-            ShowMenu(menu, LF.GameState.Paused);
+            ShowMenu(menu, _pausedInGame);
         }
 
-        private void onKeyDown(KeyboardEventArgs args)
+        public bool IsBlocking { get => _pausedInGame; }
+
+        public bool OnKeyDown(KeyboardEventArgs args)
         {
             Key key = args.Key;
             switch (key)
@@ -370,6 +356,8 @@ namespace LastAndFurious
                 case Key.Enter:
                 case Key.Space:
                     _menu.Confirm(); break;
+                default:
+                    return false;
             }
 
             /* TODO:
@@ -380,6 +368,11 @@ namespace LastAndFurious
                 return;
             }
             */
+            return true;
+        }
+
+        public void RepExec(float deltaTime)
+        {
         }
 
         private async void onStart()
