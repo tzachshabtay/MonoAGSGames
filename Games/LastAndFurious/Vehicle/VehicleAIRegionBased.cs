@@ -18,14 +18,8 @@ namespace LastAndFurious
             _regionAngles = regionAngles;
         }
 
-        protected override void repExec()
+        public override void Run(float deltaTime)
         {
-            if (LF.GameState.Paused)
-                return;
-
-            // TODO: get delta time from one API, using more precise calculation
-            float deltaTime = (float)(1.0 / AGSGame.UPDATE_RATE);
-
             float angle = 0.0f;
             // NOTE: since MonoAGS has Y axis pointing up, we need to invert the lookup array's Y index
             float x = _veh.Position.X;
