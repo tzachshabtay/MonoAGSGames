@@ -64,15 +64,29 @@ namespace AudioMixer
             AudioChannel reserved = null;
             foreach (var ch in _channels)
             {
+                bool mayReserve = false;
+                if (ch.Playback != null)
+                {
+                    // If already has one reserved channel and next channel is occupied,
+                    // then skip it.
+                    if (reserved != null)
+                        continue;
+                    // If currently playing clip has same or higher priority, then skip.
+                    if (ch.PlayInfo.Priority >= info.Priority)
+                        continue;
+                    // If channel is busy, but played clip has lower priority,
+                    // then we may reserve it for now, but continue searching.
+                    mayReserve = true;
+                }
+
                 // If channel has no tags, this means there are no restrictions
                 // to the clips it is allowed to play.
                 // If channel has tags, then the clip must come with at least
                 // one matching tag.
                 if (ch.Tags.Count != 0 && (tags == null || !ch.Tags.Overlaps(tags)))
                     continue;
-                // If channel is busy, but played clip has lower priority, then
-                // remember it for now, but continue searching.
-                if (ch.Playback != null && ch.PlayInfo.Priority < info.Priority)
+                
+                if (mayReserve)
                 {
                     reserved = ch;
                     continue;
