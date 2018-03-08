@@ -1,13 +1,15 @@
 ﻿using System.Collections.Generic;
 using AGS.API;
 
-namespace AudioMixer
+namespace AudioMixerLib
 {
     /// <summary>
     /// Audio channel, which only allows to read played clip instance, but not set a new one.
     /// </summary>
     public interface IReadOnlyAudioChannel
     {
+        int ID { get; }
+        IAudioClip Clip { get; }
         ISound Playback { get; }
     }
 
@@ -36,6 +38,7 @@ namespace AudioMixer
         readonly int _id;
         readonly HashSet<string> _tags = new HashSet<string>();
         ISound _playback;
+        IAudioClip _clip;
         MediaInfo _playinfo;
 
         /// <summary>
@@ -52,6 +55,10 @@ namespace AudioMixer
         /// </summary>
         public ISound Playback { get => _playback; }
         /// <summary>
+        /// Original sound clip that was used to create a sound instance.
+        /// </summary>
+        public IAudioClip Clip { get => _clip; }
+        /// <summary>
         /// The media info of the currently playing sound.
         /// </summary>
         public MediaInfo PlayInfo { get => _playinfo; }
@@ -61,9 +68,10 @@ namespace AudioMixer
             _id = id;
         }
 
-        public void AssignPlayback(ISound playback, MediaInfo info)
+        public void AssignPlayback(ISound playback, IAudioClip clip, MediaInfo info)
         {
             _playback = playback;
+            _clip = clip;
             _playinfo = info;
         }
     }

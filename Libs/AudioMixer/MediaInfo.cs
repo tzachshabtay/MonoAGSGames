@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using AGS.API;
 
-namespace AudioMixer
+namespace AudioMixerLib
 {
     /// <summary>
     /// Custom definition of a media clip.

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using AGS.API;
 
-namespace AudioMixer
+namespace AudioMixerLib
 {
     public class AudioMixer
     {
@@ -39,10 +39,15 @@ namespace AudioMixer
             MediaInfo info;
             if (getChannelToPlay(clip, out chan, out info))
             {
+                // If the channel is occupied, stop and dispose current sound
+                if (chan.Playback != null)
+                    chan.Playback.Stop();
+
+                // TODO: create sound paused, and play only when it's assigned?
                 ISound playback = clip.Play(shouldLoop, properties);
                 if (playback == null)
                     return null;
-                chan.AssignPlayback(playback, info);
+                chan.AssignPlayback(playback, clip, info);
                 return chan;
             }
             return null;
@@ -72,7 +77,7 @@ namespace AudioMixer
                     if (reserved != null)
                         continue;
                     // If currently playing clip has same or higher priority, then skip.
-                    if (ch.PlayInfo.Priority >= info.Priority)
+                    if (ch.PlayInfo != null && ch.PlayInfo.Priority >= info.Priority)
                         continue;
                     // If channel is busy, but played clip has lower priority,
                     // then we may reserve it for now, but continue searching.
