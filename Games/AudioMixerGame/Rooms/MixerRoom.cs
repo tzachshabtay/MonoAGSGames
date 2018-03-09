@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using AGS.API;
 using AGS.Engine;
@@ -55,23 +56,28 @@ namespace AudioMixerGame
             float xr = _game.Settings.VirtualResolution.Width;
             float yr = _game.Settings.VirtualResolution.Height;
             float x = 20f;
-            float y = 40f;
-            float step = 20f;
+            float y = 20f;
             float w = xr - x * 2;
-            float h = 15f;
+            float h = 40f;
+            float step = 5f;
             foreach (var chan in _mixer.Channels)
             {
                 ILabel label = _game.Factory.UI.GetLabel($"ChannelInfo{chan.ID}", "",
-                     w, h, x, yr - y);
+                     w, h, x, yr - y - h);
                 label.TextConfig.Font = AGSGameSettings.DefaultTextFont;
                 label.TextConfig.Alignment = Alignment.MiddleLeft;
                 _channelInfos.Add(label);
-                y += step;
+                y += step + h;
             }
 
-            ILabel copyright = _game.Factory.UI.GetLabel("Copyright", "Music by Eric Matyas (www.soundimage.org)", 0, h, x, 20f);
+            ILabel copyright = _game.Factory.UI.GetLabel("Copyright", "Credits: Music by Eric Matyas (www.soundimage.org)", 0, h, x, 20f);
             copyright.TextConfig.Font = AGSGameSettings.DefaultTextFont;
             copyright.TextConfig.Alignment = Alignment.MiddleLeft;
+            copyright.TextConfig.AutoFit = AutoFit.NoFitting;
+
+            ILabel hint = _game.Factory.UI.GetLabel("Hint", "Help:\n1-9: play clip on the first available channel.", 0, h, x, 240f);
+            copyright.TextConfig.Font = AGSGameSettings.DefaultTextFont;
+            copyright.TextConfig.Alignment = Alignment.TopLeft;
             copyright.TextConfig.AutoFit = AutoFit.LabelShouldFitText;
 
             _room.Events.OnBeforeFadeIn.Subscribe(onLoad);
@@ -102,7 +108,29 @@ namespace AudioMixerGame
                 var chan = _mixer.Channels[i];
                 var label = _channelInfos[i];
 
-                label.Text = string.Format("Chan {0}: Playback: {1}", chan.ID, chan?.Playback != null ? chan?.Clip.ID : "[none]");
+                StringBuilder sb = new StringBuilder();
+                foreach (var s in chan.Tags)
+                {
+                    if (sb.Length > 0)
+                        sb.Append(", ");
+                    sb.Append(s);
+                }
+                string chanText = string.Format("Chan {0}: Tags: {1}", chan.ID, sb.ToString());
+                string clipText;
+                if (chan?.Playback != null)
+                {
+                    var play = chan.Playback;
+                    var clip = chan.Clip;
+                    // TODO: clip position (time??)
+                    clipText = string.Format("Playback: {0}; {1}; vol: {2}; pos: {3} / {4}",
+                        clip.ID, !play.HasCompleted, play.Volume, makeTimeString(play.Seek), "--");
+                }
+                else
+                {
+                    clipText = "Playback: [none]";
+                }
+
+                label.Text = string.Format(chanText +" \n" + clipText);
             }
         }
 
@@ -115,6 +143,16 @@ namespace AudioMixerGame
                 var clip = _mlib.Clips[id];
                 _mixer.PlayClip(clip, true);
             }
+        }
+
+        // TODO: to the library helper functions
+        private static string makeTimeString(float time)
+        {
+            float total_time = time;
+            int minutes = (int)(total_time / 60.0f);
+            int seconds = (int)(total_time - minutes * 60.0f);
+            int subsecs = (int)((total_time - minutes * 60.0 - seconds) * 60.0);
+            return string.Format("{0,0:D2}:{1,0:D2}:{2,0:D2}", minutes, seconds, subsecs);
         }
     }
 }
