@@ -41,7 +41,7 @@ namespace AudioMixerLib
         readonly HashSet<string> _tags = new HashSet<string>();
         AudioPlayback _playback;
         IAudioClip _clip;
-        MediaInfo _playinfo;
+        IMediaInfo _playinfo;
 
         /// <summary>
         /// Channel's numeric ID.
@@ -67,14 +67,14 @@ namespace AudioMixerLib
         /// <summary>
         /// The media info of the currently playing sound.
         /// </summary>
-        public MediaInfo PlayInfo { get => _playinfo; }
+        public IMediaInfo PlayInfo { get => _playinfo; }
 
         public AudioChannel(int id)
         {
             _id = id;
         }
 
-        public void AssignPlayback(AudioPlayback playback, IAudioClip clip, MediaInfo info)
+        public void AssignPlayback(AudioPlayback playback, IAudioClip clip, IMediaInfo info)
         {
             _playback = playback;
             _clip = clip;

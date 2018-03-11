@@ -1,15 +1,8 @@
 ﻿using System.Collections.Generic;
-using AGS.API;
 
 namespace AudioMixerLib
 {
-    /// <summary>
-    /// Custom definition of a media clip.
-    /// </summary>
-    /// TODO: a readonly interface.
-    /// TODO: create Tags set in constructor?
-    /// TODO: Is whole set for each single media clip too much?
-    public class MediaInfo
+    public interface IMediaInfo
     {
         /// <summary>
         /// Priority specifies how important it is to play the clip.
@@ -17,14 +10,27 @@ namespace AudioMixerLib
         /// if the new requested clip has higher priority than the one
         /// that is currently playing.
         /// </summary>
-        public int Priority { get; set; }
+        int Priority { get; }
         /// <summary>
         /// A set of custom tags associated with the media clip.
         /// Could be used to setup particular rules on how the clip
         /// is used (for example, whether it is allowed to be played
         /// on particular channel).
         /// </summary>
+        ISet<string> Tags { get; }
+    }
+
+    /// <summary>
+    /// Custom definition of a media clip.
+    /// </summary>
+    /// TODO: create Tags set in constructor?
+    /// TODO: Is whole set for each single media clip too much?
+    public class MediaInfo : IMediaInfo
+    {
+        public int Priority { get; set; }
         public ISet<string> Tags { get; set; }
+
+        // TODO: constructors
     }
 
     /// <summary>
@@ -35,9 +41,9 @@ namespace AudioMixerLib
         /// <summary>
         /// Returns media info associates with the given audio clip.
         /// </summary>
-        /// <param name="clip"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
         /// TODO: return readonly media info.
-        MediaInfo GetInfo(IAudioClip clip);
+        IMediaInfo GetInfo(string id);
     }
 }

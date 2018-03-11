@@ -66,7 +66,7 @@ namespace AudioMixerLib
         public bool IsAllowedToPlay(IAudioClip clip)
         {
             AudioChannel chan;
-            MediaInfo info;
+            IMediaInfo info;
             return getChannelToPlay(clip, out chan, out info);
         }
 
@@ -81,7 +81,7 @@ namespace AudioMixerLib
         public AudioPlayback PlayClip(IAudioClip clip, bool shouldLoop = false, ISoundProperties properties = null)
         {
             AudioChannel chan;
-            MediaInfo info;
+            IMediaInfo info;
             if (getChannelToPlay(clip, out chan, out info))
             {
                 // If the channel is occupied, stop and dispose current sound
@@ -101,10 +101,10 @@ namespace AudioMixerLib
         /// <param name="clip"></param>
         /// <param name="chan"></param>
         /// <returns></returns>
-        private bool getChannelToPlay(IAudioClip clip, out AudioChannel chan, out MediaInfo info)
+        private bool getChannelToPlay(IAudioClip clip, out AudioChannel chan, out IMediaInfo info)
         {
             if (_miProvider != null)
-                info = _miProvider.GetInfo(clip);
+                info = _miProvider.GetInfo(clip.ID);
             else
                 info = null;
             ISet<string> tags = info?.Tags;
@@ -154,7 +154,7 @@ namespace AudioMixerLib
             return false;
         }
 
-        private void applyTagSettings(IPlaybackProperties props, MediaInfo info)
+        private void applyTagSettings(IPlaybackProperties props, IMediaInfo info)
         {
             AudioTagRules sum = new AudioTagRules();
             mergePlaybackProps(sum, _commonRules);

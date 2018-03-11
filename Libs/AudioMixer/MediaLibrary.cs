@@ -24,12 +24,7 @@ namespace AudioMixerLib
                 info.Tags.Add(t);
         }
 
-        public MediaInfo GetInfo(IAudioClip clip)
-        {
-            return GetInfo(clip.ID);
-        }
-
-        public MediaInfo GetInfo(string id)
+        public IMediaInfo GetInfo(string id)
         {
             MediaInfo info = null;
             _infos.TryGetValue(id, out info);
