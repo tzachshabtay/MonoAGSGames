@@ -118,7 +118,7 @@ namespace AudioMixerLib
                     if (reserved != null)
                         continue;
                     // If currently playing clip has same or higher priority, then skip.
-                    if (ch.PlayInfo != null && ch.PlayInfo.Priority >= info.Priority)
+                    if (ch.PlayInfo != null && ch.PlayInfo.Priority > info.Priority)
                         continue;
                     // If channel is busy, but played clip has lower priority,
                     // then we may reserve it for now, but continue searching.
