@@ -75,7 +75,7 @@ namespace AudioMixerGame
             copyright.TextConfig.Alignment = Alignment.MiddleLeft;
             copyright.TextConfig.AutoFit = AutoFit.NoFitting;
 
-            ILabel hint = _game.Factory.UI.GetLabel("Hint", "Help:\n1-9: play clip on the first available channel.", 0, h, x, 240f);
+            ILabel hint = _game.Factory.UI.GetLabel("Hint", "Help:\n1-9: play clip on the first available channel.\n+/-: change the audio mixer's master volume (not backend's)", 0, h, x, 240f);
             copyright.TextConfig.Font = AGSGameSettings.DefaultTextFont;
             copyright.TextConfig.Alignment = Alignment.TopLeft;
             copyright.TextConfig.AutoFit = AutoFit.LabelShouldFitText;
@@ -120,10 +120,10 @@ namespace AudioMixerGame
                 if (chan?.Playback != null)
                 {
                     var play = chan.Playback;
+                    var playProp = chan.PlaybackProperties;
                     var clip = chan.Clip;
-                    // TODO: clip position (time??)
-                    clipText = string.Format("Playback: {0}; {1}; vol: {2}; pos: {3} / {4}",
-                        clip.ID, !play.HasCompleted, play.Volume, makeTimeString(play.Seek), "--");
+                    clipText = string.Format("Playback: {0}; {1}; vol: {2}({3}); pos: {4} / {5}",
+                        clip.ID, !play.HasCompleted, play.Volume, playProp.RealVolume, makeTimeString(play.Seek), "--");
                 }
                 else
                 {
@@ -136,13 +136,18 @@ namespace AudioMixerGame
 
         private void onKeyUp(KeyboardEventArgs args)
         {
-            if (args.Key >= Key.Number1 && args.Key <= Key.Number9)
+            var key = args.Key;
+            if (key >= Key.Number1 && key <= Key.Number9)
             {
-                int num = args.Key - Key.Number1;
+                int num = key - Key.Number1;
                 string id = _clipNames[num];
                 var clip = _mlib.Clips[id];
                 _mixer.PlayClip(clip, true);
             }
+            if (key == Key.Plus || key == Key.KeypadPlus)
+                _mixer.CommonRules.Volume += 0.1f;
+            if (key == Key.Minus || key == Key.KeypadMinus)
+                _mixer.CommonRules.Volume -= 0.1f;
         }
 
         // TODO: to the library helper functions

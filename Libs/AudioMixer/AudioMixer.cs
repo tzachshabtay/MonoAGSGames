@@ -1,15 +1,45 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using AGS.API;
 
 namespace AudioMixerLib
 {
+    /// <summary>
+    /// Playback rules associated to the media clip tag.
+    /// Applied when the audio clip is played in the audio mixer.
+    /// </summary>
+    /// TODO: is it too much too implement full ISoundProperties?
+    public class AudioTagRules : INotifyPropertyChanged
+    {
+        private float _volume;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public AudioTagRules()
+        {
+            _volume = 1f;
+        }
+
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public float Volume { get => _volume; set { _volume = MathUtils.Clamp(value, 0, 1); OnPropertyChanged(nameof(Volume)); } }
+    }
+
     public class AudioMixer
     {
         private List<AudioChannel> _channels = new List<AudioChannel>();
         private List<AudioChannel> _utilityChannels = new List<AudioChannel>();
         private IMediaInfoProvider _miProvider = null;
+        private Dictionary<string, AudioTagRules> _tagRules = new Dictionary<string, AudioTagRules>();
+        private AudioTagRules _commonRules = new AudioTagRules();
 
         public IReadOnlyList<ILockedAudioChannel> Channels { get => _channels; }
+        // TODO: replace by dictionary with changes notifications
+        public IReadOnlyDictionary<string, AudioTagRules> TagRules { get => _tagRules; }
+        public AudioTagRules CommonRules { get => _commonRules; }
         public IMediaInfoProvider MediaInfoProvider { get => _miProvider; set => _miProvider = value; }
 
         public AudioMixer(IMediaInfoProvider miProvider, int channelCount)
@@ -17,6 +47,19 @@ namespace AudioMixerLib
             _miProvider = miProvider;
             for (int i = 0; i < channelCount; ++i)
                 _channels.Add(new AudioChannel(i));
+            CommonRules.PropertyChanged += onTagRulesChanged;
+        }
+
+        // TODO: remove if dictionary with notifications is used
+        public AudioTagRules RegisterTagRules(string tag)
+        {
+            AudioTagRules set;
+            if (!_tagRules.TryGetValue(tag, out set))
+            {
+                set = new AudioTagRules();
+                set.PropertyChanged += onTagRulesChanged;
+            }
+            return set;
         }
 
         public bool IsAllowedToPlay(IAudioClip clip)
@@ -33,7 +76,8 @@ namespace AudioMixerLib
         /// <param name="shouldLoop"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
-        public ILockedAudioChannel PlayClip(IAudioClip clip, bool shouldLoop = false, ISoundProperties properties = null)
+        /// TODO: return ISound instead?
+        public AudioPlayback PlayClip(IAudioClip clip, bool shouldLoop = false, ISoundProperties properties = null)
         {
             AudioChannel chan;
             MediaInfo info;
@@ -42,13 +86,10 @@ namespace AudioMixerLib
                 // If the channel is occupied, stop and dispose current sound
                 if (chan.Playback != null)
                     chan.Playback.Stop();
-
-                // TODO: create sound paused, and play only when it's assigned?
-                ISound playback = clip.Play(shouldLoop, properties);
-                if (playback == null)
-                    return null;
+                // TODO: create sound paused, and play only when it's adjusted and assigned?
+                AudioPlayback playback = new AudioPlayback(clip.Play(shouldLoop, properties));
+                applyTagSettings(playback, info);
                 chan.AssignPlayback(playback, clip, info);
-                return chan;
             }
             return null;
         }
@@ -110,6 +151,42 @@ namespace AudioMixerLib
             // No other options, return failure.
             chan = null;
             return false;
+        }
+
+        private void applyTagSettings(IPlaybackProperties props, MediaInfo info)
+        {
+            AudioTagRules sum = new AudioTagRules();
+            mergePlaybackProps(sum, _commonRules);
+            if (info != null)
+            {
+                foreach (var t in info.Tags)
+                {
+                    AudioTagRules rules;
+                    if (_tagRules.TryGetValue(t, out rules))
+                        mergePlaybackProps(sum, rules);
+                }
+            }
+            applyPlaybackProps(props, sum);
+        }
+
+        private void mergePlaybackProps(AudioTagRules sum, AudioTagRules arg)
+        {
+            sum.Volume *= arg.Volume;
+        }
+
+        private void applyPlaybackProps(IPlaybackProperties props, AudioTagRules arg)
+        {
+            props.VolumeMod = arg.Volume;
+        }
+
+        private void onTagRulesChanged(object sender, PropertyChangedEventArgs e)
+        {
+            foreach (var chan in _channels)
+            {
+                if (chan.Playback == null)
+                    continue;
+                applyTagSettings(chan.PlaybackProperties, chan.PlayInfo);
+            }
         }
     }
 }

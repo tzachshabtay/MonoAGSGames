@@ -11,6 +11,7 @@ namespace AudioMixerLib
         int ID { get; }
         IAudioClip Clip { get; }
         ISound Playback { get; }
+        IPlaybackProperties PlaybackProperties { get; }
     }
 
     /// <summary>
@@ -33,11 +34,12 @@ namespace AudioMixerLib
     /// Container for sound playbacks. Defines a set of tags, which determine
     /// the kind of clips allowed to be put in it.
     /// </summary>
+    /// TODO: revise the links between objects.
     public class AudioChannel : ILockedAudioChannel
     {
         readonly int _id;
         readonly HashSet<string> _tags = new HashSet<string>();
-        ISound _playback;
+        AudioPlayback _playback;
         IAudioClip _clip;
         MediaInfo _playinfo;
 
@@ -55,6 +57,10 @@ namespace AudioMixerLib
         /// </summary>
         public ISound Playback { get => _playback; }
         /// <summary>
+        /// Custom properties of a sound playback.
+        /// </summary>
+        public IPlaybackProperties PlaybackProperties { get => _playback; }
+        /// <summary>
         /// Original sound clip that was used to create a sound instance.
         /// </summary>
         public IAudioClip Clip { get => _clip; }
@@ -68,7 +74,7 @@ namespace AudioMixerLib
             _id = id;
         }
 
-        public void AssignPlayback(ISound playback, IAudioClip clip, MediaInfo info)
+        public void AssignPlayback(AudioPlayback playback, IAudioClip clip, MediaInfo info)
         {
             _playback = playback;
             _clip = clip;
