@@ -57,6 +57,7 @@ namespace AudioMixerLib
             if (!_tagRules.TryGetValue(tag, out set))
             {
                 set = new AudioTagRules();
+                _tagRules.Add(tag, set);
                 set.PropertyChanged += onTagRulesChanged;
             }
             return set;

@@ -32,10 +32,25 @@ namespace AudioMixerGame
             _mlib.Clips[clip.ID] = clip;
         }
 
+        protected void loadClip(string filename, string tag)
+        {
+            IAudioClip clip = _game.Factory.Sound.LoadAudioClip(AMG.MusicAssetFolder + filename, filename);
+            _mlib.AddClip(clip, tag);
+        }
+
         protected override async Task<IRoom> loadAsync()
         {
             IGameFactory f = _game.Factory;
             _room = f.Room.GetRoom(ROOM_ID);
+
+            _mixer.Channels[0].Tags.Add("music1");
+            _mixer.Channels[1].Tags.Add("music1");
+            _mixer.Channels[2].Tags.Add("music2");
+            _mixer.Channels[3].Tags.Add("music2");
+
+            // TODO: this looks so unobvious, is not it? think of a better solution
+            _mixer.RegisterTagRules("music1");
+            _mixer.RegisterTagRules("music2");
 
             _clipNames = new string[]{
                 "City-of-Tomorrow_v001_Looping.ogg",
@@ -50,8 +65,12 @@ namespace AudioMixerGame
                 "Young-Visionaries.ogg"
             };
 
+            int i = 0;
             foreach (var s in _clipNames)
-                loadClip(s);
+            {
+                loadClip(s, i < 5 ? "music1" : "music2");
+                i++;
+            }
 
             float xr = _game.Settings.VirtualResolution.Width;
             float yr = _game.Settings.VirtualResolution.Height;
@@ -75,10 +94,13 @@ namespace AudioMixerGame
             copyright.TextConfig.Alignment = Alignment.MiddleLeft;
             copyright.TextConfig.AutoFit = AutoFit.NoFitting;
 
-            ILabel hint = _game.Factory.UI.GetLabel("Hint", "Help:\n1-9: play clip on the first available channel.\n+/-: change the audio mixer's master volume (not backend's)", 0, h, x, 240f);
+            ILabel hint = _game.Factory.UI.GetLabel("Hint", "Help:\n1-9,0: play clip on the first available channel. 1-5 clips are tagged \"music1\" and 5-9,0 are \"music2\"" +
+                "\n+/-: change the audio mixer's master volume (not backend's)" +
+                "\nQ/W: change volume for tag \"music1\"\nE/R: change volume for tag \"music2\""
+                , xr - x * 2, 120, x, 240f);
             copyright.TextConfig.Font = AGSGameSettings.DefaultTextFont;
             copyright.TextConfig.Alignment = Alignment.TopLeft;
-            copyright.TextConfig.AutoFit = AutoFit.LabelShouldFitText;
+            copyright.TextConfig.AutoFit = AutoFit.TextShouldWrapAndLabelShouldFitHeight;
 
             _room.Events.OnBeforeFadeIn.Subscribe(onLoad);
             _room.Events.OnAfterFadeIn.Subscribe(onAfterFadeIn);
@@ -137,9 +159,9 @@ namespace AudioMixerGame
         private void onKeyUp(KeyboardEventArgs args)
         {
             var key = args.Key;
-            if (key >= Key.Number1 && key <= Key.Number9)
+            if (key >= Key.Number0 && key <= Key.Number9)
             {
-                int num = key - Key.Number1;
+                int num = key == Key.Number0 ? 9 : key - Key.Number1;
                 string id = _clipNames[num];
                 var clip = _mlib.Clips[id];
                 _mixer.PlayClip(clip, true);
@@ -148,6 +170,15 @@ namespace AudioMixerGame
                 _mixer.CommonRules.Volume += 0.1f;
             if (key == Key.Minus || key == Key.KeypadMinus)
                 _mixer.CommonRules.Volume -= 0.1f;
+            // TODO: save tag rules object in a reference at startup
+            if (key == Key.Q)
+                _mixer.TagRules["music1"].Volume -= 0.1f;
+            if (key == Key.W)
+                _mixer.TagRules["music1"].Volume += 0.1f;
+            if (key == Key.E)
+                _mixer.TagRules["music2"].Volume -= 0.1f;
+            if (key == Key.R)
+                _mixer.TagRules["music2"].Volume += 0.1f;
         }
 
         // TODO: to the library helper functions

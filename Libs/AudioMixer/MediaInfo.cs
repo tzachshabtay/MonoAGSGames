@@ -7,6 +7,8 @@ namespace AudioMixerLib
     /// Custom definition of a media clip.
     /// </summary>
     /// TODO: a readonly interface.
+    /// TODO: create Tags set in constructor?
+    /// TODO: Is whole set for each single media clip too much?
     public class MediaInfo
     {
         /// <summary>

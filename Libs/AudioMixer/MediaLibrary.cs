@@ -14,6 +14,16 @@ namespace AudioMixerLib
         public IDictionary<string, IAudioClip> Clips { get => _clips; }
         public Dictionary<string, MediaInfo> MediaInfo { get => _infos; }
 
+        public void AddClip(IAudioClip clip, params string[] tags)
+        {
+            Clips.Add(clip.ID, clip);
+            MediaInfo info = new MediaInfo();
+            _infos.Add(clip.ID, info);
+            info.Tags = new HashSet<string>();
+            foreach (var t in tags)
+                info.Tags.Add(t);
+        }
+
         public MediaInfo GetInfo(IAudioClip clip)
         {
             return GetInfo(clip.ID);
