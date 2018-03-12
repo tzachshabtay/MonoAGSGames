@@ -29,7 +29,7 @@ namespace AudioMixerGame
         protected void loadClip(string filename)
         {
             IAudioClip clip = _game.Factory.Sound.LoadAudioClip(AMG.MusicAssetFolder + filename, filename);
-            _mlib.Clips[clip.ID] = clip;
+            _mlib.AddClip(clip);
         }
 
         protected void loadClip(string filename, string tag)
@@ -163,8 +163,8 @@ namespace AudioMixerGame
             {
                 int num = key == Key.Number0 ? 9 : key - Key.Number1;
                 string id = _clipNames[num];
-                var clip = _mlib.Clips[id];
-                _mixer.PlayClip(clip, true);
+                var media = _mlib.Clips[id];
+                _mixer.PlayClip(media.Clip, true);
             }
             if (key == Key.Plus || key == Key.KeypadPlus)
                 _mixer.CommonRules.Volume += 0.1f;

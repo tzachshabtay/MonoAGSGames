@@ -8,27 +8,27 @@ namespace AudioMixerLib
     /// </summary>
     public class MediaLibrary : IMediaInfoProvider
     {
-        private readonly Dictionary<string, MediaInfo> _infos = new Dictionary<string, MediaInfo>();
-        private readonly Dictionary<string, IAudioClip> _clips = new Dictionary<string, IAudioClip>();
+        private readonly Dictionary<string, ITaggedAudioClip> _clips = new Dictionary<string, ITaggedAudioClip>();
 
-        public IDictionary<string, IAudioClip> Clips { get => _clips; }
-        public Dictionary<string, MediaInfo> MediaInfo { get => _infos; }
+        public IReadOnlyDictionary<string, ITaggedAudioClip> Clips { get => _clips; }
 
         public void AddClip(IAudioClip clip, params string[] tags)
         {
-            Clips.Add(clip.ID, clip);
+            TaggedAudioClip taggedClip = new TaggedAudioClip();
+            taggedClip.Clip = clip;
             MediaInfo info = new MediaInfo();
-            _infos.Add(clip.ID, info);
             info.Tags = new HashSet<string>();
             foreach (var t in tags)
                 info.Tags.Add(t);
+            taggedClip.Info = info;
+            _clips.Add(clip.ID, taggedClip);
         }
 
         public IMediaInfo GetInfo(string id)
         {
-            MediaInfo info = null;
-            _infos.TryGetValue(id, out info);
-            return info;
+            ITaggedAudioClip clip = null;
+            _clips.TryGetValue(id, out clip);
+            return clip.Info;
         }
     }
 }
