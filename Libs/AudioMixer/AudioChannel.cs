@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AGS.API;
 
 namespace AudioMixerLib
@@ -59,10 +60,33 @@ namespace AudioMixerLib
             _id = id;
         }
 
-        public void AssignPlayback(AudioPlayback playback, IAudioClip clip)
+        public async Task AssignPlayback(AudioPlayback playback, IAudioClip clip)
         {
+            bool wait = false;
+            // TODO: revise again, if this is an optimal variant?
+            lock (playback)
+            {
+                if (_playback != null && _playback.HasCompleted)
+                {
+                    _playback.Stop();
+                    wait = true;
+                }
+            }
+            if (wait)
+                await _playback.Completed;
+
             _playback = playback;
             _clip = clip;
+            await _playback.Completed.ContinueWith(t => onPlaybackComplete());
+        }
+
+        private void onPlaybackComplete()
+        {
+            lock (_playback)
+            {
+                _playback = null;
+                _clip = null;
+            }
         }
     }
 }
