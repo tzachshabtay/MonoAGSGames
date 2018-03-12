@@ -88,9 +88,9 @@ namespace AudioMixerLib
                 if (chan.Playback != null)
                     chan.Playback.Stop();
                 // TODO: create sound paused, and play only when it's adjusted and assigned?
-                AudioPlayback playback = new AudioPlayback(clip.Play(shouldLoop, properties));
+                AudioPlayback playback = new AudioPlayback(clip.Play(shouldLoop, properties), info, chan);
                 applyTagSettings(playback, info);
-                chan.AssignPlayback(playback, clip, info);
+                chan.AssignPlayback(playback, clip);
             }
             return null;
         }
@@ -119,7 +119,7 @@ namespace AudioMixerLib
                     if (reserved != null)
                         continue;
                     // If currently playing clip has same or higher priority, then skip.
-                    if (ch.PlayInfo != null && ch.PlayInfo.Priority > info.Priority)
+                    if (ch.Playback.MediaInfo != null && ch.Playback.MediaInfo.Priority > info.Priority)
                         continue;
                     // If channel is busy, but played clip has lower priority,
                     // then we may reserve it for now, but continue searching.
@@ -186,7 +186,7 @@ namespace AudioMixerLib
             {
                 if (chan.Playback == null)
                     continue;
-                applyTagSettings(chan.PlaybackProperties, chan.PlayInfo);
+                applyTagSettings(chan.Playback, chan.Playback.MediaInfo);
             }
         }
     }

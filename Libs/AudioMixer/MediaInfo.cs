@@ -17,6 +17,7 @@ namespace AudioMixerLib
         /// is used (for example, whether it is allowed to be played
         /// on particular channel).
         /// </summary>
+        /// TODO: use simplier container instead, like array?
         ISet<string> Tags { get; }
     }
 

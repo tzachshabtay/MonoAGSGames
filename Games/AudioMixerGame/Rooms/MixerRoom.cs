@@ -142,10 +142,9 @@ namespace AudioMixerGame
                 if (chan?.Playback != null)
                 {
                     var play = chan.Playback;
-                    var playProp = chan.PlaybackProperties;
                     var clip = chan.Clip;
                     clipText = string.Format("Playback: {0}; {1}; vol: {2}({3}); pos: {4} / {5}",
-                        clip.ID, !play.HasCompleted, play.Volume, playProp.RealVolume, makeTimeString(play.Seek), "--");
+                        clip.ID, !play.HasCompleted, play.Volume, play.RealVolume, makeTimeString(play.Seek), "--");
                 }
                 else
                 {

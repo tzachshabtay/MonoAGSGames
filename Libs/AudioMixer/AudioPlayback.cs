@@ -20,25 +20,42 @@ namespace AudioMixerLib
     }
 
     /// <summary>
-    /// A proxy wrapper around actual ISound.
+    /// Playback interface that extends ISound features with additional
+    /// properties and reference to the source clip, as well as mixer's channel
+    /// it's being suited on.
+    /// </summary>
+    public interface IAudioPlayback : ISound, IPlaybackProperties
+    {
+        IMediaInfo MediaInfo { get; }
+        ILockedAudioChannel Channel { get; }
+    }
+
+    /// <summary>
+    /// A proxy wrapper around actual ISound, 
     /// Required to control composite volume setting. This is necessary, because sound
     /// volume may be set as a combination of playback's own volume and other modifiers,
     /// such as category's master volume (e.g. music volume setting) and temporary
     /// sound volume reduction or mute.
     /// </summary>
-    /// TODO: look for better solution?
-    public class AudioPlayback : ISound, IPlaybackProperties
+    public class AudioPlayback : IAudioPlayback
     {
         private readonly ISound _sound;
+        private readonly IMediaInfo _info;
+        private readonly ILockedAudioChannel _channel;
         private float _ownVolume;
         private float _volumeMod;
 
-        public AudioPlayback(ISound sound)
+        public AudioPlayback(ISound sound, IMediaInfo info, ILockedAudioChannel chan)
         {
             _sound = sound;
+            _info = info;
+            _channel = chan;
             _ownVolume = sound.Volume;
             _volumeMod = 1f;
         }
+
+        public IMediaInfo MediaInfo { get => _info; }
+        public ILockedAudioChannel Channel { get => _channel; }
 
         public float RealVolume { get => _sound.Volume; }
 
