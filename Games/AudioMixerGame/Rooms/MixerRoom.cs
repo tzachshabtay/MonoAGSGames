@@ -18,6 +18,8 @@ namespace AudioMixerGame
         private readonly AudioMixer _mixer;
         private string[] _clipNames;
         private List<ILabel> _channelInfos;
+        private AudioRules _music1Rules;
+        private AudioRules _music2Rules;
 
         public MixerRoom(IGame game) : base(game, ROOM_ID)
         {
@@ -47,10 +49,9 @@ namespace AudioMixerGame
             _mixer.Channels[1].Tags.Add("music1");
             _mixer.Channels[2].Tags.Add("music2");
             _mixer.Channels[3].Tags.Add("music2");
-
-            // TODO: this looks so unobvious, is not it? think of a better solution
-            _mixer.RegisterTagRules("music1");
-            _mixer.RegisterTagRules("music2");
+            
+            _music1Rules = _mixer.RegisterRules("music1");
+            _music2Rules = _mixer.RegisterRules("music2");
 
             _clipNames = new string[]{
                 "City-of-Tomorrow_v001_Looping.ogg",
@@ -166,18 +167,18 @@ namespace AudioMixerGame
                 _mixer.PlayClip(media, true);
             }
             if (key == Key.Plus || key == Key.KeypadPlus)
-                _mixer.CommonRules.Volume += 0.1f;
+                _mixer.MasterRules.Volume += 0.1f;
             if (key == Key.Minus || key == Key.KeypadMinus)
-                _mixer.CommonRules.Volume -= 0.1f;
+                _mixer.MasterRules.Volume -= 0.1f;
             // TODO: save tag rules object in a reference at startup
             if (key == Key.Q)
-                _mixer.TagRules["music1"].Volume -= 0.1f;
+                _music1Rules.Volume -= 0.1f;
             if (key == Key.W)
-                _mixer.TagRules["music1"].Volume += 0.1f;
+                _music1Rules.Volume += 0.1f;
             if (key == Key.E)
-                _mixer.TagRules["music2"].Volume -= 0.1f;
+                _music2Rules.Volume -= 0.1f;
             if (key == Key.R)
-                _mixer.TagRules["music2"].Volume += 0.1f;
+                _music2Rules.Volume += 0.1f;
         }
 
         // TODO: to the library helper functions

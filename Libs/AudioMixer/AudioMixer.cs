@@ -5,17 +5,17 @@ using AGS.API;
 namespace AudioMixerLib
 {
     /// <summary>
-    /// Playback rules associated to the media clip tag.
+    /// Playback rules associated to the media tag.
     /// Applied when the audio clip is played in the audio mixer.
     /// </summary>
     /// TODO: is it too much too implement full ISoundProperties?
-    public class AudioTagRules : INotifyPropertyChanged
+    public class AudioRules : INotifyPropertyChanged
     {
         private float _volume;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public AudioTagRules()
+        public AudioRules()
         {
             _volume = 1f;
         }
@@ -28,32 +28,36 @@ namespace AudioMixerLib
         public float Volume { get => _volume; set { _volume = MathUtils.Clamp(value, 0, 1); OnPropertyChanged(nameof(Volume)); } }
     }
 
+    /// <summary>
+    /// A mixer that plays clips on its channels, obiding media tags and other properties,
+    /// associated with tags and particular clips.
+    /// </summary>
     public class AudioMixer
     {
         private List<AudioChannel> _channels = new List<AudioChannel>();
         private List<AudioChannel> _utilityChannels = new List<AudioChannel>();
-        private Dictionary<string, AudioTagRules> _tagRules = new Dictionary<string, AudioTagRules>();
-        private AudioTagRules _commonRules = new AudioTagRules();
+        private Dictionary<string, AudioRules> _tagRules = new Dictionary<string, AudioRules>();
+        private AudioRules _masterRules = new AudioRules();
 
         public IReadOnlyList<ILockedAudioChannel> Channels { get => _channels; }
         // TODO: replace by dictionary with changes notifications
-        public IReadOnlyDictionary<string, AudioTagRules> TagRules { get => _tagRules; }
-        public AudioTagRules CommonRules { get => _commonRules; }
+        public IReadOnlyDictionary<string, AudioRules> TagRules { get => _tagRules; }
+        public AudioRules MasterRules { get => _masterRules; }
 
         public AudioMixer(int channelCount)
         {
             for (int i = 0; i < channelCount; ++i)
                 _channels.Add(new AudioChannel(i));
-            CommonRules.PropertyChanged += onTagRulesChanged;
+            _masterRules.PropertyChanged += onTagRulesChanged;
         }
 
         // TODO: remove if dictionary with notifications is used
-        public AudioTagRules RegisterTagRules(string tag)
+        public AudioRules RegisterRules(string tag)
         {
-            AudioTagRules set;
+            AudioRules set;
             if (!_tagRules.TryGetValue(tag, out set))
             {
-                set = new AudioTagRules();
+                set = new AudioRules();
                 _tagRules.Add(tag, set);
                 set.PropertyChanged += onTagRulesChanged;
             }
@@ -154,13 +158,13 @@ namespace AudioMixerLib
 
         private void applyTagSettings(IPlaybackProperties props, IMediaInfo info)
         {
-            AudioTagRules sum = new AudioTagRules();
-            mergePlaybackProps(sum, _commonRules);
+            AudioRules sum = new AudioRules();
+            mergePlaybackProps(sum, _masterRules);
             if (info != null)
             {
                 foreach (var t in info.Tags)
                 {
-                    AudioTagRules rules;
+                    AudioRules rules;
                     if (_tagRules.TryGetValue(t, out rules))
                         mergePlaybackProps(sum, rules);
                 }
@@ -168,12 +172,12 @@ namespace AudioMixerLib
             applyPlaybackProps(props, sum);
         }
 
-        private void mergePlaybackProps(AudioTagRules sum, AudioTagRules arg)
+        private void mergePlaybackProps(AudioRules sum, AudioRules arg)
         {
             sum.Volume *= arg.Volume;
         }
 
-        private void applyPlaybackProps(IPlaybackProperties props, AudioTagRules arg)
+        private void applyPlaybackProps(IPlaybackProperties props, AudioRules arg)
         {
             props.VolumeMod = arg.Volume;
         }
