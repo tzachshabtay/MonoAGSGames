@@ -41,6 +41,7 @@ namespace AudioMixerLib
     /// Container for sound playbacks. Defines a set of tags, which determine
     /// the kind of clips allowed to be put in it.
     /// </summary>
+    /// TODO: tag mode: OR / AND
     public class AudioChannel : ILockedAudioChannel
     {
         readonly int _id;

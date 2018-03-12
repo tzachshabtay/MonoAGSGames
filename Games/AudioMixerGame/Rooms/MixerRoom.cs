@@ -18,8 +18,8 @@ namespace AudioMixerGame
         private readonly AudioMixer _mixer;
         private string[] _clipNames;
         private List<ILabel> _channelInfos;
-        private AudioRules _music1Rules;
-        private AudioRules _music2Rules;
+        private IAudioRules _music1Rules;
+        private IAudioRules _music2Rules;
 
         public MixerRoom(IGame game) : base(game, ROOM_ID)
         {
