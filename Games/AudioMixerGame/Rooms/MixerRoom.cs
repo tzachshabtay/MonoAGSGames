@@ -28,16 +28,16 @@ namespace AudioMixerGame
             _channelInfos = new List<ILabel>();
         }
 
-        protected void loadClip(string filename)
+        protected async Task<ITaggedAudioClip> loadClip(string filename)
         {
-            IAudioClip clip = _game.Factory.Sound.LoadAudioClip(AMG.MusicAssetFolder + filename, filename);
-            _mlib.AddClip(clip);
+            IAudioClip clip = await _game.Factory.Sound.LoadAudioClipAsync(AMG.MusicAssetFolder + filename, filename);
+            return _mlib.AddClip(clip);
         }
 
-        protected void loadClip(string filename, string tag)
+        protected async Task<ITaggedAudioClip> loadClip(string filename, string tag)
         {
-            IAudioClip clip = _game.Factory.Sound.LoadAudioClip(AMG.MusicAssetFolder + filename, filename);
-            _mlib.AddClip(clip, tag);
+            IAudioClip clip = await _game.Factory.Sound.LoadAudioClipAsync(AMG.MusicAssetFolder + filename, filename);
+            return _mlib.AddClip(clip, tag);
         }
 
         protected override async Task<IRoom> loadAsync()
@@ -69,7 +69,7 @@ namespace AudioMixerGame
             int i = 0;
             foreach (var s in _clipNames)
             {
-                loadClip(s, i < 5 ? "music1" : "music2");
+                await loadClip(s, i < 5 ? "music1" : "music2");
                 i++;
             }
 
@@ -95,13 +95,15 @@ namespace AudioMixerGame
             copyright.TextConfig.Alignment = Alignment.MiddleLeft;
             copyright.TextConfig.AutoFit = AutoFit.NoFitting;
 
-            ILabel hint = _game.Factory.UI.GetLabel("Hint", "Help:\n1-9,0: play clip on the first available channel. 1-5 clips are tagged \"music1\" and 5-9,0 are \"music2\"" +
+            ILabel hint = _game.Factory.UI.GetLabel("Hint", 
+                "Help:\n1-9,0: play clip on the first available channel. 1-5 clips are tagged \"music1\" and 5-9,0 are \"music2\"" +
+                "\nLCtrl + 1-4: stop the sound in the corresponding channel" +
                 "\n+/-: change the audio mixer's master volume (not backend's)" +
                 "\nQ/W: change volume for tag \"music1\"\nE/R: change volume for tag \"music2\""
-                , xr - x * 2, 120, x, 240f);
-            copyright.TextConfig.Font = AGSGameSettings.DefaultTextFont;
-            copyright.TextConfig.Alignment = Alignment.TopLeft;
-            copyright.TextConfig.AutoFit = AutoFit.TextShouldWrapAndLabelShouldFitHeight;
+                , xr - x * 2, 0, x, 240f);
+            hint.TextConfig.Font = AGSGameSettings.DefaultTextFont;
+            hint.TextConfig.Alignment = Alignment.TopLeft;
+            hint.TextConfig.AutoFit = AutoFit.TextShouldWrapAndLabelShouldFitHeight;
 
             _room.Events.OnBeforeFadeIn.Subscribe(onLoad);
             _room.Events.OnAfterFadeIn.Subscribe(onAfterFadeIn);
@@ -138,7 +140,7 @@ namespace AudioMixerGame
                         sb.Append(", ");
                     sb.Append(s);
                 }
-                string chanText = string.Format("Chan {0}: Tags: {1}", chan.ID, sb.ToString());
+                string chanText = string.Format("Chan {0}: Tags: {1}", chan.ID + 1, sb.ToString());
                 string clipText;
                 if (chan?.Playback != null)
                 {
@@ -159,13 +161,27 @@ namespace AudioMixerGame
         private void onKeyUp(KeyboardEventArgs args)
         {
             var key = args.Key;
-            if (key >= Key.Number0 && key <= Key.Number9)
+
+            if (_game.Input.IsKeyDown(Key.LControl))
             {
-                int num = key == Key.Number0 ? 9 : key - Key.Number1;
-                string id = _clipNames[num];
-                var media = _mlib.Clips[id];
-                _mixer.PlayClip(media, true);
+                if (key >= Key.Number0 && key <= Key.Number9)
+                {
+                    int num = key == Key.Number0 ? 9 : key - Key.Number1;
+                    if (num >= 0 && num < _mixer.Channels.Count)
+                        _mixer.Channels[num].Playback?.Stop();
+                }
             }
+            else
+            {
+                if (key >= Key.Number0 && key <= Key.Number9)
+                {
+                    int num = key == Key.Number0 ? 9 : key - Key.Number1;
+                    string id = _clipNames[num];
+                    var media = _mlib.Clips[id];
+                    _mixer.PlayClip(media, true);
+                }
+            }
+
             if (key == Key.Plus || key == Key.KeypadPlus)
                 _mixer.MasterRules.Volume += 0.1f;
             if (key == Key.Minus || key == Key.KeypadMinus)

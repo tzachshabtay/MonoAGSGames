@@ -12,7 +12,7 @@ namespace AudioMixerLib
 
         public IReadOnlyDictionary<string, ITaggedAudioClip> Clips { get => _clips; }
 
-        public void AddClip(IAudioClip clip, params string[] tags)
+        public ITaggedAudioClip AddClip(IAudioClip clip, params string[] tags)
         {
             TaggedAudioClip taggedClip = new TaggedAudioClip();
             taggedClip.Clip = clip;
@@ -22,6 +22,7 @@ namespace AudioMixerLib
                 info.Tags.Add(t);
             taggedClip.Info = info;
             _clips.Add(clip.ID, taggedClip);
+            return taggedClip;
         }
     }
 }
