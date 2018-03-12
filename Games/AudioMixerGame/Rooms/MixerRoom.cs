@@ -22,7 +22,7 @@ namespace AudioMixerGame
         public MixerRoom(IGame game) : base(game, ROOM_ID)
         {
             _mlib = new MediaLibrary();
-            _mixer = new AudioMixer(_mlib, 4);
+            _mixer = new AudioMixer(4);
             _channelInfos = new List<ILabel>();
         }
 
@@ -163,7 +163,7 @@ namespace AudioMixerGame
                 int num = key == Key.Number0 ? 9 : key - Key.Number1;
                 string id = _clipNames[num];
                 var media = _mlib.Clips[id];
-                _mixer.PlayClip(media.Clip, true);
+                _mixer.PlayClip(media, true);
             }
             if (key == Key.Plus || key == Key.KeypadPlus)
                 _mixer.CommonRules.Volume += 0.1f;

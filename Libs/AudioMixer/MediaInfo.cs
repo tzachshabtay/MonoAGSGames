@@ -33,18 +33,4 @@ namespace AudioMixerLib
 
         // TODO: constructors
     }
-
-    /// <summary>
-    /// Provides custom definition for the media clips.
-    /// </summary>
-    public interface IMediaInfoProvider
-    {
-        /// <summary>
-        /// Returns media info associates with the given audio clip.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        /// TODO: return readonly media info.
-        IMediaInfo GetInfo(string id);
-    }
 }

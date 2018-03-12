@@ -5,6 +5,7 @@ namespace AudioMixerLib
     /// <summary>
     /// An interface that binds IAudioClip with IMediaInfo.
     /// </summary>
+    /// TODO: better name.
     public interface ITaggedAudioClip
     {
         IAudioClip Clip { get; }

@@ -32,7 +32,6 @@ namespace AudioMixerLib
     {
         private List<AudioChannel> _channels = new List<AudioChannel>();
         private List<AudioChannel> _utilityChannels = new List<AudioChannel>();
-        private IMediaInfoProvider _miProvider = null;
         private Dictionary<string, AudioTagRules> _tagRules = new Dictionary<string, AudioTagRules>();
         private AudioTagRules _commonRules = new AudioTagRules();
 
@@ -40,11 +39,9 @@ namespace AudioMixerLib
         // TODO: replace by dictionary with changes notifications
         public IReadOnlyDictionary<string, AudioTagRules> TagRules { get => _tagRules; }
         public AudioTagRules CommonRules { get => _commonRules; }
-        public IMediaInfoProvider MediaInfoProvider { get => _miProvider; set => _miProvider = value; }
 
-        public AudioMixer(IMediaInfoProvider miProvider, int channelCount)
+        public AudioMixer(int channelCount)
         {
-            _miProvider = miProvider;
             for (int i = 0; i < channelCount; ++i)
                 _channels.Add(new AudioChannel(i));
             CommonRules.PropertyChanged += onTagRulesChanged;
@@ -63,11 +60,10 @@ namespace AudioMixerLib
             return set;
         }
 
-        public bool IsAllowedToPlay(IAudioClip clip)
+        public bool IsAllowedToPlay(ITaggedAudioClip clip)
         {
             AudioChannel chan;
-            IMediaInfo info;
-            return getChannelToPlay(clip, out chan, out info);
+            return getChannelToPlay(clip.Info, out chan);
         }
 
         /// <summary>
@@ -78,19 +74,23 @@ namespace AudioMixerLib
         /// <param name="properties"></param>
         /// <returns></returns>
         /// TODO: return ISound instead?
-        public AudioPlayback PlayClip(IAudioClip clip, bool shouldLoop = false, ISoundProperties properties = null)
+        public AudioPlayback PlayClip(ITaggedAudioClip clip, bool shouldLoop = false, ISoundProperties properties = null)
         {
             AudioChannel chan;
-            IMediaInfo info;
-            if (getChannelToPlay(clip, out chan, out info))
+            if (getChannelToPlay(clip.Info, out chan))
             {
                 // If the channel is occupied, stop and dispose current sound
                 if (chan.Playback != null)
                     chan.Playback.Stop();
                 // TODO: create sound paused, and play only when it's adjusted and assigned?
-                AudioPlayback playback = new AudioPlayback(clip.Play(shouldLoop, properties), info, chan);
-                applyTagSettings(playback, info);
-                chan.AssignPlayback(playback, clip);
+                IAudioClip audioClip = clip.Clip;
+                IMediaInfo mediaInfo = clip.Info;
+                ISound sound = audioClip.Play(shouldLoop, properties);
+                if (sound == null)
+                    return null;
+                AudioPlayback playback = new AudioPlayback(sound, mediaInfo, chan);
+                applyTagSettings(playback, mediaInfo);
+                chan.AssignPlayback(playback, audioClip);
             }
             return null;
         }
@@ -101,12 +101,8 @@ namespace AudioMixerLib
         /// <param name="clip"></param>
         /// <param name="chan"></param>
         /// <returns></returns>
-        private bool getChannelToPlay(IAudioClip clip, out AudioChannel chan, out IMediaInfo info)
+        private bool getChannelToPlay(IMediaInfo info, out AudioChannel chan)
         {
-            if (_miProvider != null)
-                info = _miProvider.GetInfo(clip.ID);
-            else
-                info = null;
             ISet<string> tags = info?.Tags;
             AudioChannel reserved = null;
             foreach (var ch in _channels)
@@ -119,7 +115,9 @@ namespace AudioMixerLib
                     if (reserved != null)
                         continue;
                     // If currently playing clip has same or higher priority, then skip.
-                    if (ch.Playback.MediaInfo != null && ch.Playback.MediaInfo.Priority > info.Priority)
+                    int priorityOld = ch.Playback.MediaInfo != null ? ch.Playback.MediaInfo.Priority : 0;
+                    int priorityNew = info != null ? info.Priority : 0;
+                    if (priorityOld > priorityNew)
                         continue;
                     // If channel is busy, but played clip has lower priority,
                     // then we may reserve it for now, but continue searching.

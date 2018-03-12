@@ -6,7 +6,7 @@ namespace AudioMixerLib
     /// <summary>
     /// Default implementation of the IMediaInfoProvider.
     /// </summary>
-    public class MediaLibrary : IMediaInfoProvider
+    public class MediaLibrary
     {
         private readonly Dictionary<string, ITaggedAudioClip> _clips = new Dictionary<string, ITaggedAudioClip>();
 
@@ -22,13 +22,6 @@ namespace AudioMixerLib
                 info.Tags.Add(t);
             taggedClip.Info = info;
             _clips.Add(clip.ID, taggedClip);
-        }
-
-        public IMediaInfo GetInfo(string id)
-        {
-            ITaggedAudioClip clip = null;
-            _clips.TryGetValue(id, out clip);
-            return clip.Info;
         }
     }
 }
