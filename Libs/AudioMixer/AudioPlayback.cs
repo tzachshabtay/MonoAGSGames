@@ -84,11 +84,12 @@ namespace AudioMixerLib
 
         public int SourceID { get => _sound.SourceID; }
         public bool IsValid { get => _sound.IsValid; }
+        public float Duration { get => _sound.Duration; }
         public bool IsPaused { get => _sound.IsPaused; }
         public bool IsLooping { get => _sound.IsLooping; }
         public bool HasCompleted { get => _sound.HasCompleted; }
         public Task Completed { get => _sound.Completed; }
-        public float Seek { get => _sound.Seek; set => _sound.Seek = value; }
+        public float Position { get => _sound.Position; set => _sound.Position = value; }
         public void Pause() { _sound.Pause(); }
         public void Resume() { _sound.Resume(); }
         public void Rewind() { _sound.Rewind(); }
