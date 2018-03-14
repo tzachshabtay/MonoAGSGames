@@ -96,7 +96,7 @@ namespace AudioMixerGame
             copyright.TextConfig.AutoFit = AutoFit.NoFitting;
 
             ILabel hint = _game.Factory.UI.GetLabel("Hint", 
-                "Help:\n1-9,0: play clip on the first available channel. 1-5 clips are tagged \"music1\" and 5-9,0 are \"music2\"" +
+                "Help:\n1-9,0: play clip on the first available channel. 1-5 clips are tagged \"music1\" and 6-9,0 are \"music2\"" +
                 "\nLCtrl + 1-4: stop the sound in the corresponding channel" +
                 "\n+/-: change the audio mixer's master volume (not backend's)" +
                 "\nQ/W: change volume for tag \"music1\"\nE/R: change volume for tag \"music2\""
