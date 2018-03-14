@@ -47,8 +47,9 @@ namespace AudioMixerLib
     {
         readonly int _id;
         readonly HashSet<string> _tags = new HashSet<string>();
-        AudioPlayback _playback;
-        IAudioClip _clip;
+        readonly object _playbackLock = new object();
+        AudioPlayback _playback = null;
+        IAudioClip _clip = null;
         
         public int ID { get => _id; }
         public ISet<string> Tags { get => _tags; }
@@ -60,32 +61,30 @@ namespace AudioMixerLib
             _id = id;
         }
 
-        public async Task AssignPlayback(AudioPlayback playback, IAudioClip clip)
+        public void AssignPlayback(AudioPlayback playback, IAudioClip clip)
         {
-            bool wait = false;
-            // TODO: revise again, if this is an optimal variant?
-            lock (playback)
+            lock (_playbackLock)
             {
-                if (_playback != null && _playback.HasCompleted)
+                if (_playback != null && !_playback.HasCompleted)
                 {
                     _playback.Stop();
-                    wait = true;
                 }
-            }
-            if (wait)
-                await _playback.Completed;
 
-            _playback = playback;
-            _clip = clip;
-            await _playback.Completed.ContinueWith(t => onPlaybackComplete());
+                _playback = playback;
+                _clip = clip;
+                _playback.Completed.ContinueWith(t => onPlaybackComplete(playback));
+            }
         }
 
-        private void onPlaybackComplete()
+        private void onPlaybackComplete(object playback)
         {
-            lock (_playback)
+            lock (_playbackLock)
             {
-                _playback = null;
-                _clip = null;
+                if (_playback == playback)
+                {
+                    _playback = null;
+                    _clip = null;
+                }
             }
         }
     }
