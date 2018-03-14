@@ -87,6 +87,7 @@ namespace AudioMixerLib
                 AudioPlayback playback = new AudioPlayback(sound, mediaInfo, chan);
                 applyPlaybackProps(playback, rules);
                 chan.AssignPlayback(playback, audioClip);
+                return playback;
             }
             return null;
         }
