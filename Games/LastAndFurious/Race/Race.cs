@@ -140,7 +140,10 @@ namespace LastAndFurious
             // Update state of cars and participants logic
             foreach (var car in _cars)
             {
-                car.Veh.Physics.Run(deltaTime);
+                if (car.Veh.Control != null)
+                    car.Veh.Control.Run(deltaTime);
+                if (car.Veh.Physics != null)
+                    car.Veh.Physics.Run(deltaTime);
                 if (CarCollisions)
                     runVeh2VehCollision();
             }

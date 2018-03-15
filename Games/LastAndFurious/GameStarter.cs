@@ -28,7 +28,8 @@ namespace LastAndFurious
             loadFonts(game);
             preloadUI(game);
             LF.Rooms.PrecreateAll(game);
-            GameMenu.Init(game);
+            LF.Menu = new GameMenu(game);
+            GameStateManager.Init(game);
         }
 
         private static void loadFonts(IGame game)
@@ -86,7 +87,7 @@ namespace LastAndFurious
         private static void preloadUI(IGame game)
         {
             IGraphicsFactory f = game.Factory.Graphics;
-            LF.StartMenu.Selector = f.LoadImage(LF.UIAssetFolder + "diamond.png", LF.MagicColor.TopLeftPixel);
+            LF.StartMenuAssets.Selector = f.LoadImage(LF.UIAssetFolder + "diamond.png", LF.MagicColor.TopLeftPixel);
         }
     }
 }

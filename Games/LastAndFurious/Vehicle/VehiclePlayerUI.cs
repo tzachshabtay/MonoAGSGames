@@ -8,11 +8,8 @@ namespace LastAndFurious
         {
         }
 
-        protected override void repExec()
+        public override void Run(float deltaTime)
         {
-            if (LF.GameState.Paused)
-                return;
-
             // TODO: configure keys
             if (_input.IsKeyDown(Key.Up))
                 _veh.Accelerator = 1.0F;

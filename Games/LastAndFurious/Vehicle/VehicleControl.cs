@@ -25,11 +25,9 @@ namespace LastAndFurious
         public override void Init(IEntity entity)
         {
             base.Init(entity);
-            entity.Bind<VehiclePhysics>(c => { _veh = c; _game.Events.OnRepeatedlyExecute.Subscribe(repExec); },
-                                        _ => { _veh = null; _game.Events.OnRepeatedlyExecute.Unsubscribe(repExec); });
-            _game.Events.OnRepeatedlyExecute.Subscribe(repExec);
+            entity.Bind<VehiclePhysics>(c => { _veh = c; }, _ => { _veh = null; });
         }
 
-        protected abstract void repExec();
+        public abstract void Run(float deltaTime);
     }
 }

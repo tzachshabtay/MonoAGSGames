@@ -106,11 +106,8 @@ namespace LastAndFurious
             }
         }
 
-        protected override void repExec()
+        public override void Run(float deltaTime)
         {
-            if (LF.GameState.Paused)
-                return;
-
             if (this.testShouldChooseNewTarget())
             {
                 if (!this.chooseNewTarget())

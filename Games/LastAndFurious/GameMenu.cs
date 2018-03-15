@@ -24,9 +24,8 @@ namespace LastAndFurious
     {
         public int MusicVolume;
     }
-
-    // TODO: remake into non-static class
-    public static class GameMenu
+    
+    public class GameMenu : IThisGameState
     {
         private const int STARTMENU_OPTION_POS_TOP = 303;
         private const int STARTMENU_OPTION_X = 255;
@@ -38,22 +37,23 @@ namespace LastAndFurious
         private const int GAMEMENU_OPTION_SPACING = 50;
         private const int GAMEMENU_OPTION_VALUE_X = 371 - GAMEMENU_OPTION_X;
 
-        private static IGame _game = null;
-        private static IObject _menuObject = null;
-        private static GameMenuComponent _menu = null;
-        private static MenuClass _menuClass = MenuClass.eMenuNone;
-        private static MenuClass _prevMenuClass = MenuClass.eMenuNone;
-        private static IObject _vbar = null;
-        private static IPanel _underlay = null;
+        private IGame _game = null;
+        private IObject _menuObject = null;
+        private GameMenuComponent _menu = null;
+        private MenuClass _menuClass = MenuClass.eMenuNone;
+        private MenuClass _prevMenuClass = MenuClass.eMenuNone;
+        private IObject _vbar = null;
+        private IPanel _underlay = null;
+        private bool _pausedInGame = false;
 
         // TODO: move to game config controller, or something
-        private static GameConfig _gameCfg;
-        private static RaceEventConfig _raceCfg;
+        private GameConfig _gameCfg;
+        private RaceEventConfig _raceCfg;
 
-        public static bool IsShown { get => _menuObject != null && _menuObject.Visible; }
-        public static RaceEventConfig RaceConfig { get => _raceCfg; }
+        public bool IsShown { get => _menuObject != null && _menuObject.Visible; }
+        public RaceEventConfig RaceConfig { get => _raceCfg; }
 
-        public static void Init(IGame game)
+        public GameMenu(IGame game)
         {
             _game = game;
             _gameCfg = new GameConfig();
@@ -63,7 +63,7 @@ namespace LastAndFurious
             applyGameOptions();
         }
 
-        private static void setOptionsToDefault()
+        private void setOptionsToDefault()
         {
             _gameCfg.MusicVolume = 100;
             /*
@@ -81,34 +81,26 @@ namespace LastAndFurious
             _raceCfg.CarCollisions = true;
         }
 
-        private static void loadOptions()
+        private void loadOptions()
         {
             UserConfig.Load(LF.UserDataFolder + "options.ini", ref _gameCfg, ref _raceCfg);
         }
 
-        private static void saveOptions()
+        private void saveOptions()
         {
             UserConfig.Save(LF.UserDataFolder + "options.ini", _gameCfg, _raceCfg);
         }
 
-        private static void applyGameOptions()
+        private void applyGameOptions()
         {
             setMusicVol(_gameCfg.MusicVolume);
         }
 
-        public static void ShowMenu(MenuClass menuClass, bool pausedInGame = false)
+        public void ShowMenu(MenuClass menuClass, bool pausedInGame = false)
         {
             _prevMenuClass = _menuClass;
             _menuClass = menuClass;
-
-            if (pausedInGame && !LF.GameState.Paused)
-            {
-                LF.GameState.Paused = true;
-                /* TODO: 
-                gRaceOverlay.Visible = false;
-                gBanner.Visible = false;
-                */
-            }
+            _pausedInGame = pausedInGame;
 
             if (_menuObject == null)
             {
@@ -127,10 +119,10 @@ namespace LastAndFurious
             arrangeMenu();
             _menuObject.Visible = true;
 
-            _game.Input.KeyDown.Subscribe(onKeyDown);
+            GameStateManager.PushState(this);
         }
 
-        public static void HideMenu()
+        public void HideMenu()
         {
             if (!IsShown)
                 return;
@@ -141,19 +133,10 @@ namespace LastAndFurious
             _menuClass = MenuClass.eMenuNone;
             _prevMenuClass = MenuClass.eMenuNone;
 
-            if (LF.GameState.Paused)
-            {
-                /* TODO:
-                gRaceOverlay.Visible = true;
-                gBanner.Visible = true;
-                */
-                LF.GameState.Paused = false;
-            }
-
-            _game.Input.KeyDown.Unsubscribe(onKeyDown);
+            GameStateManager.PopState(this);
         }
 
-        public static void Clear()
+        public void Clear()
         {
             if (_menuObject == null)
                 return;
@@ -176,7 +159,7 @@ namespace LastAndFurious
             }
         }
 
-        private static void setupMenuLook()
+        private void setupMenuLook()
         {
             // Need to revert Y coordinates ported from original game
             int rx = _game.Settings.VirtualResolution.Width;
@@ -191,7 +174,7 @@ namespace LastAndFurious
                     _menuObject.Y = ry - STARTMENU_OPTION_POS_TOP;
                     _menu.Font = LF.Fonts.SilverFont;
                     _menu.OptionSpacing = STARTMENU_OPTION_SPACING;
-                    _menu.SelectorGraphic = LF.StartMenu.Selector;
+                    _menu.SelectorGraphic = LF.StartMenuAssets.Selector;
                     _menu.SelectorX = DIAMOND_X - STARTMENU_OPTION_X;
                     break;
                 case MenuClass.eMenuMain:
@@ -201,13 +184,13 @@ namespace LastAndFurious
                     _menuObject.Y = ry - GAMEMENU_OPTION_POS_TOP;
                     _menu.Font = LF.Fonts.SilverFont;
                     _menu.OptionSpacing = GAMEMENU_OPTION_SPACING;
-                    _menu.SelectorGraphic = LF.RaceMenu.Selector;
+                    _menu.SelectorGraphic = LF.RaceMenuAssets.Selector;
                     _menu.SelectorX = -GAMEMENU_OPTION_X;
                     if (_vbar == null)
                     {
                         IObject vbar = _game.Factory.Object.GetObject("GameMenuVBar");
                         vbar.Pivot = new PointF();
-                        vbar.Image = LF.RaceMenu.VBar;
+                        vbar.Image = LF.RaceMenuAssets.VBar;
                         _menuObject.TreeNode.AddChild(vbar);
                         vbar.RenderLayer = _menuObject.RenderLayer;
                         vbar.X = -GAMEMENU_OPTION_X;
@@ -229,7 +212,7 @@ namespace LastAndFurious
             }
         }
 
-        private static void arrangeMenu()
+        private void arrangeMenu()
         {
             _menu.ClearItems();
             switch (_menuClass)
@@ -288,7 +271,7 @@ namespace LastAndFurious
             */
         }
 
-        private static void updateOptionValues()
+        private void updateOptionValues()
         {
             switch (_menuClass)
             {
@@ -311,7 +294,7 @@ namespace LastAndFurious
                         int subwidth = _menu.Font.GetTextWidth(value);
                         string driverName = LF.RaceAssets.Names[_raceCfg.PlayerDriver];
                         DriverCharacter driver = LF.RaceAssets.Drivers[driverName];
-                        IImage frame = LF.RaceMenu.PortraitFrame;
+                        IImage frame = LF.RaceMenuAssets.PortraitFrame;
                         IImage face_pic = driver.Portrait;
                         float portrait_x = (subwidth - frame.Width) / 2 - 5;
                         float portrait_y = _menu.Font.Height / 2 - frame.Height / 2;
@@ -341,7 +324,7 @@ namespace LastAndFurious
             }
         }
 
-        private static void cancelMenu()
+        private void cancelMenu()
         {
             if (_menuClass == MenuClass.eMenuMain || _menuClass == MenuClass.eMenuMainInGame)
             {
@@ -353,12 +336,14 @@ namespace LastAndFurious
             }
         }
 
-        private static void switchToMenu(MenuClass menu)
+        private void switchToMenu(MenuClass menu)
         {
-            ShowMenu(menu, LF.GameState.Paused);
+            ShowMenu(menu, _pausedInGame);
         }
 
-        private static void onKeyDown(KeyboardEventArgs args)
+        public bool IsBlocking { get => _pausedInGame; }
+
+        public bool OnKeyDown(KeyboardEventArgs args)
         {
             Key key = args.Key;
             switch (key)
@@ -371,6 +356,8 @@ namespace LastAndFurious
                 case Key.Enter:
                 case Key.Space:
                     _menu.Confirm(); break;
+                default:
+                    return false;
             }
 
             /* TODO:
@@ -381,29 +368,34 @@ namespace LastAndFurious
                 return;
             }
             */
+            return true;
         }
 
-        private static async void onStart()
+        public void RepExec(float deltaTime)
+        {
+        }
+
+        private async void onStart()
         {
             Clear();
             await LF.RaceAssets.LoadAll(_game);
-            await LF.RaceMenu.LoadAll(_game);
+            await LF.RaceMenuAssets.LoadAll(_game);
             await LF.Rooms.RaceRoom.GotoAsync();
         }
 
-        private static void onQuit()
+        private void onQuit()
         {
             saveOptions();
             _game.Quit();
         }
 
-        private static void onGo()
+        private void onGo()
         {
             HideMenu();
             LF.Rooms.RaceRoom.StartSinglePlayer(_raceCfg);
         }
 
-        private static void changeMusicVol(bool up)
+        private void changeMusicVol(bool up)
         {
             if (up)
                 setMusicVol(_gameCfg.MusicVolume + 5);
@@ -412,7 +404,7 @@ namespace LastAndFurious
             updateOptionValues();
         }
 
-        private static void changeDriver(bool up)
+        private void changeDriver(bool up)
         {
             _raceCfg.PlayerDriver = up ? _raceCfg.PlayerDriver + 1 : _raceCfg.PlayerDriver - 1;
             if (_raceCfg.PlayerDriver < 0) _raceCfg.PlayerDriver = LF.RaceAssets.Drivers.Count - 1;
@@ -420,21 +412,21 @@ namespace LastAndFurious
             updateOptionValues();
         }
 
-        private static void changeLaps(bool up)
+        private void changeLaps(bool up)
         {
             _raceCfg.Laps = up ? _raceCfg.Laps + 1 : _raceCfg.Laps - 1;
             _raceCfg.Laps = MathHelper.Clamp(_raceCfg.Laps, 1, 9);
             updateOptionValues();
         }
 
-        private static void changeOpponents(bool up)
+        private void changeOpponents(bool up)
         {
             _raceCfg.Opponents = up ? _raceCfg.Opponents + 1 : _raceCfg.Opponents - 1;
             _raceCfg.Opponents = MathHelper.Clamp(_raceCfg.Opponents, 0, Race.MAX_RACING_CARS - 1);
             updateOptionValues();
         }
 
-        private static void changePhysics()
+        private void changePhysics()
         {
             if (_raceCfg.Physics == RacePhysicsMode.Safe)
                 _raceCfg.Physics = RacePhysicsMode.Wild;
@@ -443,14 +435,14 @@ namespace LastAndFurious
             updateOptionValues();
         }
 
-        private static void changeCollisions()
+        private void changeCollisions()
         {
             _raceCfg.CarCollisions = !_raceCfg.CarCollisions;
             updateOptionValues();
         }
 
         // TODO: move to game config controller, or something
-        private static void setMusicVol(int vol)
+        private void setMusicVol(int vol)
         {
             _gameCfg.MusicVolume = MathHelper.Clamp(vol, 0, 100);
             // TODO: separate volume for music tracks

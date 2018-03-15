@@ -57,12 +57,15 @@ namespace LastAndFurious
             public static SpriteFont PurpleItalicFont;
         }
 
-        public static class StartMenu
+        // TODO: make non-static object, or even multiple objects for different menu types
+        public static GameMenu Menu;
+
+        public static class StartMenuAssets
         {
             public static IImage Selector;
         }
 
-        public static class RaceMenu
+        public static class RaceMenuAssets
         {
             public static IImage Selector;
             public static IImage VBar;
@@ -127,13 +130,6 @@ namespace LastAndFurious
                 BannerLoose = await f.LoadImageAsync(UIAssetFolder + "banner4.png", MagicColor.TopLeftPixel);
                 BannerWin = await f.LoadImageAsync(UIAssetFolder + "banner5.png", MagicColor.TopLeftPixel);
             }
-        }
-
-        // TODO: had to do this, because engine's GameState.Paused blocks literally all update,
-        // including input events.
-        public static class GameState
-        {
-            public static bool Paused { get; set; }
         }
     }
 }
