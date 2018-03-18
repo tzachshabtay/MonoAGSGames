@@ -29,13 +29,13 @@ namespace LayerGame
 
             PointF[] parallaxVals = new PointF[6]
             {
-                new PointF(0f, 0.2f), new PointF(0.15f, 0.4f), new PointF(0.1f, 0.6f), new PointF(0.3f, 0.8f),
-                new PointF(1f, 1f), new PointF(2.4f, 2f)
+                new PointF(0f, 0f), new PointF(0.15f, 0.2f), new PointF(0.1f, 0.1f), new PointF(0.3f, 0.4f),
+                new PointF(1f, 1f), new PointF(2.4f, 2.2f)
             };
 
             Point[] coordVals = new Point[6]
             {
-                new Point(-200, 0), new Point(-320, 250), new Point(-320, 100), new Point(-240, -50),
+                new Point(-200, 20), new Point(-320, 250), new Point(-320, 100), new Point(-240, -50),
                 new Point(0, -55), new Point (400, -120)
             };
 
