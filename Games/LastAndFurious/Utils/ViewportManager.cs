@@ -6,31 +6,36 @@ using AGS.Engine;
 namespace LastAndFurious
 {
     /// <summary>
-    /// Class manages creation and positioning of multiple viewports on screen.
+    /// Class manages creation and positioning of secondary viewports on screen.
     /// Viewports are placed in a grid-like fashion, in even rows and columns.
     /// </summary>
     public class ViewportManager
     {
         IGameState _gs;
         float _defCameraAccel;
-        List<IViewport> _allViews;
         List<IObject> _cameraTargets;
+        IObject _mainCamTarget;
 
         public ViewportManager(IGameState gs, float defCameraAccel = 0f)
         {
             _gs = gs;
             _defCameraAccel = defCameraAccel;
-            _allViews = new List<IViewport>();
             _cameraTargets = new List<IObject>();
 
-            addView(_gs.Viewport);
+            Camera mainCam = new Camera(defCameraAccel);
+            mainCam.Target = () => { return _mainCamTarget; };
+            MainViewport.Camera = mainCam;
         }
 
-        public int ViewportCount { get => _allViews.Count; }
+        public IViewport MainViewport { get => _gs.Viewport; }
+        public Camera MainCamera { get => _gs.Viewport.Camera as Camera; }
+        public IObject MainCameraTarget { get => _mainCamTarget; set => _mainCamTarget = value; }
+
+        public int ViewportCount { get => _gs.SecondaryViewports.Count; }
 
         public IViewport GetViewport(int index)
         {
-            return index >= 0 && index < _allViews.Count ? _allViews[index] : null;
+            return index >= 0 && index < _gs.SecondaryViewports.Count ? _gs.SecondaryViewports[index] : null;
         }
 
         public Camera GetCamera(int index)
@@ -42,27 +47,14 @@ namespace LastAndFurious
         public IList<IObject> CameraTargets { get => _cameraTargets; }
 
         /// <summary>
-        /// Resets to single viewport and default engine's camera.
+        /// Resets to single viewport.
         /// Intended to be called before disposing of the current ViewportManager.
         /// </summary>
-        public void ResetToDefaultViewport()
+        public void ResetToSingleViewport()
         {
-            _allViews.Clear();
+            _gs.SecondaryViewports.Clear();
             _cameraTargets.Clear();
-            _gs.SecondaryViewports.Clear();
-            _gs.Viewport.ProjectionBox = new RectangleF(0, 0, 1, 1);
-            _gs.Viewport.Camera = new AGSCamera();
-        }
-
-        /// <summary>
-        /// Resets to single viewport.
-        /// </summary>
-        public void ResetToSingleView()
-        {
-            _allViews.RemoveRange(1, _allViews.Count - 1);
-            _cameraTargets.RemoveRange(1, _cameraTargets.Count - 1);
-            _gs.SecondaryViewports.Clear();
-            positionViewports();
+            MainViewport.DisplayListSettings.DisplayRoom = true;
         }
 
         /// <summary>
@@ -74,21 +66,15 @@ namespace LastAndFurious
             IViewport view = addView();
             _gs.SecondaryViewports.Add(view);
             positionViewports();
+            MainViewport.DisplayListSettings.DisplayRoom = false;
             return view;
         }
 
-        private IViewport addView(IViewport v = null)
+        private IViewport addView()
         {
-            if (v == null)
-            {
-                v = new AGSViewport(new AGSDisplayListSettings(), new Camera(_defCameraAccel));
-                v.RoomProvider = _gs;
-            }
-            else
-            {
-                v.Camera = new Camera(_defCameraAccel);
-            }
-            _allViews.Add(v);
+            IViewport v = new AGSViewport(new AGSDisplayListSettings(), new Camera(_defCameraAccel));
+            v.RoomProvider = _gs;
+            v.DisplayListSettings.DisplayGUIs = false;
             int camIndex = _cameraTargets.Count;
             _cameraTargets.Add(null);
             v.Camera.Target = () => { return _cameraTargets[camIndex]; };
@@ -97,7 +83,7 @@ namespace LastAndFurious
 
         private void positionViewports()
         {
-            var all = _allViews;
+            var all = _gs.SecondaryViewports;
             int count = all.Count;
             int rows = (int)Math.Round(Math.Sqrt(count));
             int columns = (int)Math.Ceiling((float)count / rows);

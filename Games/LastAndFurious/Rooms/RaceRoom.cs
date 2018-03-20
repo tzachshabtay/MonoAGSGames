@@ -80,8 +80,6 @@ namespace LastAndFurious
             clearRace();
 
             RaceUI.Clear();
-            if (_viewMan != null)
-                _viewMan.ResetToDefaultViewport();
             _viewMan = null;
 
             _aiRegionBased = null;
@@ -226,7 +224,7 @@ namespace LastAndFurious
                 _tChangeAICamera.Dispose();
             _tChangeAICamera = null;
             if (_viewMan != null)
-                _viewMan.ResetToSingleView();
+                _viewMan.ResetToSingleViewport();
 
             if (_race != null)
                 _race.Clear();
@@ -265,8 +263,8 @@ namespace LastAndFurious
                 _tChangeAICamera = null;
             }
 
-            _viewMan.CameraTargets[0] = _race.Player.Car.O;
-            Camera cam = _viewMan.GetCamera(0);
+            _viewMan.MainCameraTarget = _race.Player.Car.O;
+            Camera cam = _viewMan.MainCamera;
             cam.TargettingAcceleration = 0f;
             if (snap)
                 cam.Snap();
@@ -275,17 +273,10 @@ namespace LastAndFurious
         private void cameraTargetRandomCar(bool snap)
         {
             bool lastSnap = false;
-            if (_tChangeAICamera == null)
+            if (_viewMan.ViewportCount < MAX_VIEWPORTS)
             {
-                _viewMan.ResetToSingleView();
-            }
-            else
-            {
-                if (_viewMan.ViewportCount < MAX_VIEWPORTS)
-                {
-                    _viewMan.AddViewport();
-                    lastSnap = true;
-                }
+                _viewMan.AddViewport();
+                lastSnap = true;
             }
 
             for (int i = 0; i < _viewMan.ViewportCount; ++i)
