@@ -27,7 +27,8 @@ namespace LastAndFurious
     public class RaceRoom : RoomScript, IThisGameState
     {
         private const string ROOM_ID = "RaceRoom";
-        private const float CHANGE_AI_CAMERA_TIME = 8000f;
+        private const int MAX_VIEWPORTS = 9;
+        private const float CHANGE_AI_CAMERA_TIME = 4000f;
 
         private IAudioClip _music;
 
@@ -40,9 +41,8 @@ namespace LastAndFurious
         // Supported ai controller types
         private AIRegionBased _aiRegionBased;
         private AIPathBase _aiPathBased;
-        // TODO: move to camera manager
-        private Camera _camera;
-        private IObject _cameraTarget;
+        // Camera settings
+        private ViewportManager _viewMan;
         private Timer _tChangeAICamera;
 
         private bool _isAIRace;
@@ -80,8 +80,8 @@ namespace LastAndFurious
             clearRace();
 
             RaceUI.Clear();
+            _viewMan = null;
 
-            _camera = null;
             _aiRegionBased = null;
             _aiPathBased = null;
             
@@ -128,9 +128,7 @@ namespace LastAndFurious
             if (_track.AiData.AIPathNodes != null)
                 _aiPathBased = new AIPathBase(_game, _track.AiData.AIPathNodes);
 
-            _camera = new Camera();
-            _game.State.Viewport.Camera = _camera;
-
+            _viewMan = new ViewportManager(_game.State);
             return _room;
         }
 
@@ -225,7 +223,8 @@ namespace LastAndFurious
             if (_tChangeAICamera != null)
                 _tChangeAICamera.Dispose();
             _tChangeAICamera = null;
-            _cameraTarget = null;
+            if (_viewMan != null)
+                _viewMan.ResetToSingleViewport();
 
             if (_race != null)
                 _race.Clear();
@@ -264,32 +263,42 @@ namespace LastAndFurious
                 _tChangeAICamera = null;
             }
 
-            _cameraTarget = _race.Player.Car.O;
-            _camera.TargettingAcceleration = 0f;
+            _viewMan.MainCameraTarget = _race.Player.Car.O;
+            Camera cam = _viewMan.MainCamera;
+            cam.TargettingAcceleration = 0f;
             if (snap)
-                _camera.Snap();
+                cam.Snap();
         }
 
         private void cameraTargetRandomCar(bool snap)
         {
+            bool lastSnap = false;
+            if (_viewMan.ViewportCount < MAX_VIEWPORTS)
+            {
+                _viewMan.AddViewport();
+                lastSnap = true;
+            }
+
+            for (int i = 0; i < _viewMan.ViewportCount; ++i)
+            {
+                _viewMan.CameraTargets[i] = _race.Cars[MathUtils.Random().Next(0, _race.Cars.Count - 1)].O;
+                Camera cam = _viewMan.GetCamera(i);
+                cam.TargettingAcceleration = 0.5f;
+                if (snap || i == _viewMan.ViewportCount - 1 && lastSnap)
+                    cam.Snap();
+            }
+
             if (_tChangeAICamera == null)
             {
                 _tChangeAICamera = new Timer(CHANGE_AI_CAMERA_TIME);
-                _tChangeAICamera.AutoReset = true;
+                _tChangeAICamera.AutoReset = false;
                 _tChangeAICamera.Elapsed += _tChangeAICamera_Elapsed;
                 _tChangeAICamera.Start();
             }
-
-            _cameraTarget = _race.Cars[MathUtils.Random().Next(0, _race.Cars.Count - 1)].O;
-            _camera.TargettingAcceleration = 0.5f;
-            if (snap)
-                _camera.Snap();
-        }
-
-        // TODO: work around this
-        private IObject getCameraTarget()
-        {
-            return _cameraTarget;
+            else
+            {
+                _tChangeAICamera.Start();
+            }
         }
 
         private void setupRace(RaceEventConfig eventCfg)
@@ -364,8 +373,7 @@ namespace LastAndFurious
             _game.State.Paused = true;
 
             setupRace(new RaceEventConfig(-1, eventCfg.Opponents, eventCfg.Laps, eventCfg.Physics, eventCfg.CarCollisions));
-
-            _game.State.Viewport.Camera.Target = getCameraTarget;
+            
             cameraTargetRandomCar(true);
 
             _isAIRace = true;
@@ -377,8 +385,7 @@ namespace LastAndFurious
             _game.State.Paused = true;
 
             setupRace(eventCfg);
-
-            _game.State.Viewport.Camera.Target = getCameraTarget;
+            
             cameraTargetPlayerCar(true);
 
             _isAIRace = false;
