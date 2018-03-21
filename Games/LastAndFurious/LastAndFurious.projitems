@@ -30,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Race\Track.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Utils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils\Vectors.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\ViewportManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleAIPathBased.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vehicle\VehicleAIRegionBased.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Race\VehicleConfig.cs" />
